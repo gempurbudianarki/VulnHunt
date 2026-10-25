@@ -6,9 +6,9 @@ use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use App\Services\CompetitionSettings;
+use App\Services\TeamJoinService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class TeamController extends Controller
 {
@@ -74,7 +74,7 @@ class TeamController extends Controller
             ->with('success', 'Tim berhasil dibentuk! Anda otomatis menjadi Ketua Tim.');
     }
 
-    public function join(Request $request)
+    public function join(Request $request, TeamJoinService $joinService)
     {
         $user = $request->user();
 
@@ -87,43 +87,10 @@ class TeamController extends Controller
             'invite_code' => ['required', 'string', 'size:8'],
         ]);
 
-        $settings = app(CompetitionSettings::class);
-        $maxTeamSize = (int) $settings->get('max_team_size', 4);
+        $team = $joinService->join($user, $validated['invite_code']);
 
-        return DB::transaction(function () use ($user, $validated, $maxTeamSize) {
-            $team = Team::where('invite_code', strtoupper(trim($validated['invite_code'])))
-                ->lockForUpdate()
-                ->first();
-
-            if (! $team) {
-                throw ValidationException::withMessages([
-                    'invite_code' => ['Kode undangan tim tidak ditemukan.'],
-                ]);
-            }
-
-            if ($team->isDisqualified()) {
-                throw ValidationException::withMessages([
-                    'invite_code' => ['Tim ini telah didiskualifikasi dari perlombaan.'],
-                ]);
-            }
-
-            $currentMembersCount = TeamMember::where('team_id', $team->id)->lockForUpdate()->count();
-            if ($currentMembersCount >= $maxTeamSize) {
-                throw ValidationException::withMessages([
-                    'invite_code' => ["Tim ini sudah penuh (maksimal {$maxTeamSize} anggota)."],
-                ]);
-            }
-
-            TeamMember::create([
-                'team_id' => $team->id,
-                'user_id' => $user->id,
-                'role' => 'member',
-                'joined_at' => now(),
-            ]);
-
-            return redirect()->route('teams.index')
-                ->with('success', "Berhasil bergabung dengan tim {$team->name}!");
-        });
+        return redirect()->route('teams.index')
+            ->with('success', "Berhasil bergabung dengan tim {$team->name}!");
     }
 
     public function leave(Request $request)

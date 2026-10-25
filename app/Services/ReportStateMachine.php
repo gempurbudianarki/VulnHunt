@@ -97,10 +97,14 @@ class ReportStateMachine
                 'status' => $toStatus,
             ];
 
-            // Penanganan Kasus Tiap Transisi
             switch ($toStatus) {
                 case 'in_review':
                     if (in_array($fromStatus, ['valid', 'invalid', 'duplicate', 'rewarded'], true)) {
+                        // REOPEN KEPUTUSAN: Pembukaan kembali laporan berstatus rewarded HANYA boleh role admin
+                        if ($fromStatus === 'rewarded' && ! $actor->hasRole('admin')) {
+                            throw new AuthorizationException('Hanya admin yang memiliki wewenang untuk membuka kembali laporan yang telah berstatus rewarded.');
+                        }
+
                         // REOPEN KEPUTUSAN: Wajib menyertakan alasan!
                         if (empty($reason)) {
                             throw new InvalidArgumentException('Membuka kembali keputusan laporan wajib disertai dengan catatan alasan.');
@@ -213,7 +217,15 @@ class ReportStateMachine
 
             $lockedReport->update($updateData);
 
-            // 4. Catat Riwayat Status di report_status_histories
+            // Jika status berubah ke valid atau laporan valid/rewarded dibuka kembali,
+            // hitung ulang poin SELURUH laporan valid dalam grup (team + scope + CWE)
+            if ($toStatus === 'valid' || ($toStatus === 'in_review' && in_array($fromStatus, ['valid', 'rewarded'], true))) {
+                $this->pointsCalculator->recalculateGroupPoints(
+                    $lockedReport->team_id,
+                    $lockedReport->scope_id,
+                    $lockedReport->vulnerability_type_id
+                );
+            }
             ReportStatusHistory::create([
                 'report_id' => $lockedReport->id,
                 'from_status' => $fromStatus,

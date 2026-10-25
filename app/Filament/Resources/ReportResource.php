@@ -55,7 +55,7 @@ class ReportResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with(['team', 'scope', 'vulnerabilityType', 'reporter'])
-            ->orderByRaw("FIELD(status, 'submitted', 'in_review', 'needs_info', 'valid', 'duplicate', 'invalid', 'rewarded')")
+            ->orderByRaw("CASE status WHEN 'submitted' THEN 1 WHEN 'in_review' THEN 2 WHEN 'needs_info' THEN 3 WHEN 'valid' THEN 4 WHEN 'duplicate' THEN 5 WHEN 'invalid' THEN 6 WHEN 'rewarded' THEN 7 ELSE 8 END")
             ->orderBy('submitted_at', 'asc');
     }
 

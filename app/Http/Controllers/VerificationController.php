@@ -150,9 +150,23 @@ class VerificationController extends Controller
         $user = $request->user();
         $submission = NdaSubmission::findOrFail($id);
 
-        // Akses hanya untuk pemilik berkas atau panitia (admin/triager)
-        if ($submission->user_id !== $user->id && ! $user->hasAnyRole(['admin', 'triager'])) {
+        // Akses hanya untuk pemilik berkas atau panitia role admin (triager dilarang akses dokumen NDA)
+        if ($submission->user_id !== $user->id && ! $user->hasRole('admin')) {
             abort(403, 'Anda tidak berhak mengakses dokumen ini.');
+        }
+
+        // Catat unduhan berkas NDA oleh admin ke audit log aktivitas
+        if ($user->hasRole('admin') && $submission->user_id !== $user->id) {
+            activity('nda')
+                ->performedOn($submission)
+                ->causedBy($user)
+                ->withProperties([
+                    'nda_id' => $submission->id,
+                    'document_number' => $submission->document_number,
+                    'target_user_id' => $submission->user_id,
+                    'ip' => $request->ip(),
+                ])
+                ->log('admin_download_nda');
         }
 
         if (! Storage::disk('private')->exists($submission->signed_file_path)) {

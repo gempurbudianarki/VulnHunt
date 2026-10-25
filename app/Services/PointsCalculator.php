@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Report;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class PointsCalculator
@@ -60,14 +61,19 @@ class PointsCalculator
         if ($diminishingEnabled) {
             $steps = (array) $this->settings->get('diminishing_steps', [1.0, 0.5, 0.25]);
 
-            // Hitung laporan valid ke-n dari tim yang sama dengan scope dan CWE yang sama
-            // Urutan n ditentukan oleh submitted_at
+            // Hitung urutan laporan valid dalam grup tim + scope + CWE berdasarkan submitted_at ASC, id ASC
             $previousValidCount = Report::where('team_id', $report->team_id)
                 ->where('scope_id', $report->scope_id)
                 ->where('vulnerability_type_id', $report->vulnerability_type_id)
                 ->whereIn('status', ['valid', 'rewarded'])
                 ->where('id', '!=', $report->id)
-                ->where('submitted_at', '<=', $report->submitted_at)
+                ->where(function ($query) use ($report) {
+                    $query->where('submitted_at', '<', $report->submitted_at)
+                        ->orWhere(function ($q) use ($report) {
+                            $q->where('submitted_at', '=', $report->submitted_at)
+                                ->where('id', '<', $report->id);
+                        });
+                })
                 ->count();
 
             $validSequence = $previousValidCount + 1;
@@ -98,6 +104,63 @@ class PointsCalculator
             'valid_sequence' => $validSequence,
             'audit_note' => $auditNote,
         ];
+    }
+
+    /**
+     * Hitung ulang poin SELURUH laporan valid dalam satu grup (team_id + scope_id + vulnerability_type_id)
+     * dalam satu transaksi database untuk menjamin konsistensi diminishing returns
+     * saat ada laporan yang divalidasi tidak berurutan, dibuka kembali, atau diubah severity-nya.
+     */
+    public function recalculateGroupPoints(int $teamId, int $scopeId, int $vulnerabilityTypeId): void
+    {
+        $diminishingEnabled = (bool) $this->settings->get('diminishing_enabled', false);
+        if (! $diminishingEnabled) {
+            return;
+        }
+
+        $steps = (array) $this->settings->get('diminishing_steps', [1.0, 0.5, 0.25]);
+
+        DB::transaction(function () use ($teamId, $scopeId, $vulnerabilityTypeId, $steps) {
+            $reports = Report::where('team_id', $teamId)
+                ->where('scope_id', $scopeId)
+                ->where('vulnerability_type_id', $vulnerabilityTypeId)
+                ->whereIn('status', ['valid', 'rewarded'])
+                ->orderBy('submitted_at', 'asc')
+                ->orderBy('id', 'asc')
+                ->lockForUpdate()
+                ->get();
+
+            $pointsPerSeverity = $this->settings->get('points_per_severity', [
+                'critical' => 100,
+                'high' => 60,
+                'medium' => 30,
+                'low' => 10,
+                'info' => 2,
+            ]);
+
+            foreach ($reports as $index => $rep) {
+                $validSequence = $index + 1;
+                $stepIndex = min($validSequence - 1, count($steps) - 1);
+                $diminishing = (float) ($steps[$stepIndex] ?? 1.0);
+
+                $severity = $rep->severity_final ?? $rep->severity_claimed;
+                $base = (int) ($pointsPerSeverity[$severity] ?? 0);
+                $scope = $rep->scope;
+                $criticalityWeight = $scope ? max(1.00, (float) $scope->criticality_weight) : 1.00;
+                $qualityFactor = $rep->quality_factor !== null ? (float) $rep->quality_factor : 1.00;
+
+                // Lewati jika admin memberi override poin khusus manual
+                if (! empty($rep->points_override_note)) {
+                    continue;
+                }
+
+                $newPoints = (int) round($base * $criticalityWeight * $qualityFactor * $diminishing);
+
+                $rep->update([
+                    'points_awarded' => $newPoints,
+                ]);
+            }
+        });
     }
 
     /**

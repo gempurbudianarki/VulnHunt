@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\TeamController;
+use App\Models\Team;
 use App\Models\User;
+use App\Services\CvssCalculator;
+use App\Services\ReportSubmissionService;
+use App\Services\TeamJoinService;
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,12 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Artisan::command('app:concurrent-join {invite_code} {user_id} {--database=mysql_test}', function () {
+    if (! app()->environment('testing')) {
+        $this->error('Perintah ini hanya diizinkan dijalankan pada environment testing.');
+
+        return 1;
+    }
+
     $code = $this->argument('invite_code');
     $userId = (int) $this->argument('user_id');
     $db = $this->option('database');
@@ -24,18 +31,8 @@ Artisan::command('app:concurrent-join {invite_code} {user_id} {--database=mysql_
 
     $user = User::on($db)->findOrFail($userId);
 
-    $request = Request::create(route('teams.join'), 'POST', [
-        'invite_code' => $code,
-    ]);
-    $request->setUserResolver(fn () => $user);
-
     try {
-        $response = app(TeamController::class)->join($request);
-        if (session('error')) {
-            $this->error('FAILED: '.session('error'));
-
-            return 1;
-        }
+        app(TeamJoinService::class)->join($user, $code);
         $this->info('SUCCESS');
 
         return 0;
@@ -47,6 +44,12 @@ Artisan::command('app:concurrent-join {invite_code} {user_id} {--database=mysql_
 });
 
 Artisan::command('app:test-lock-join {invite_code} {user_id} {--database=mysql_test}', function () {
+    if (! app()->environment('testing')) {
+        $this->error('Perintah ini hanya diizinkan dijalankan pada environment testing.');
+
+        return 1;
+    }
+
     $code = $this->argument('invite_code');
     $userId = (int) $this->argument('user_id');
     $db = $this->option('database');
@@ -59,13 +62,8 @@ Artisan::command('app:test-lock-join {invite_code} {user_id} {--database=mysql_t
 
     $user = User::on($db)->findOrFail($userId);
 
-    $request = Request::create(route('teams.join'), 'POST', [
-        'invite_code' => $code,
-    ]);
-    $request->setUserResolver(fn () => $user);
-
     try {
-        app(TeamController::class)->join($request);
+        app(TeamJoinService::class)->join($user, $code);
         $this->line('NO_LOCK_DETECTED');
 
         return 0;
@@ -78,6 +76,12 @@ Artisan::command('app:test-lock-join {invite_code} {user_id} {--database=mysql_t
 });
 
 Artisan::command('app:concurrent-report {user_id} {scope_id} {cwe_id} {title} {--database=mysql_test}', function () {
+    if (! app()->environment('testing')) {
+        $this->error('Perintah ini hanya diizinkan dijalankan pada environment testing.');
+
+        return 1;
+    }
+
     $userId = (int) $this->argument('user_id');
     $scopeId = (int) $this->argument('scope_id');
     $cweId = (int) $this->argument('cwe_id');
@@ -90,24 +94,24 @@ Artisan::command('app:concurrent-report {user_id} {scope_id} {cwe_id} {title} {-
     DB::setDefaultConnection($db);
 
     $user = User::on($db)->findOrFail($userId);
+    $team = Team::on($db)->where('leader_id', $user->id)->first() ?? $user->currentTeam();
 
-    $request = Request::create(route('reports.store'), 'POST', [
+    $cvss = CvssCalculator::calculate('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H');
+
+    $data = [
         'scope_id' => $scopeId,
         'vulnerability_type_id' => $cweId,
         'title' => $title,
         'endpoint' => '/concurrent-test',
-        'cvss_vector_claimed' => 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+        'parameter' => null,
         'description' => 'Test concurrency deskripsi temuan',
         'steps_to_reproduce' => str_repeat('Langkah reproduksi valid dan terverifikasi. ', 10),
         'impact' => 'Dampak',
-        'agree_no_privacy_violation' => '1',
-        'agree_no_destruction' => '1',
-        'agree_in_scope_only' => '1',
-    ]);
-    $request->setUserResolver(fn () => $user);
+        'remediation' => 'Remediasi',
+    ];
 
     try {
-        app(ReportController::class)->store($request);
+        app(ReportSubmissionService::class)->submit($user, $team, $data, $cvss);
         $this->info('SUCCESS');
 
         return 0;
@@ -119,6 +123,12 @@ Artisan::command('app:concurrent-report {user_id} {scope_id} {cwe_id} {title} {-
 });
 
 Artisan::command('app:test-lock-report {user_id} {scope_id} {cwe_id} {title} {--database=mysql_test}', function () {
+    if (! app()->environment('testing')) {
+        $this->error('Perintah ini hanya diizinkan dijalankan pada environment testing.');
+
+        return 1;
+    }
+
     $userId = (int) $this->argument('user_id');
     $scopeId = (int) $this->argument('scope_id');
     $cweId = (int) $this->argument('cwe_id');
@@ -132,24 +142,24 @@ Artisan::command('app:test-lock-report {user_id} {scope_id} {cwe_id} {title} {--
     DB::statement('SET SESSION innodb_lock_wait_timeout = 1');
 
     $user = User::on($db)->findOrFail($userId);
+    $team = Team::on($db)->where('leader_id', $user->id)->first() ?? $user->currentTeam();
 
-    $request = Request::create(route('reports.store'), 'POST', [
+    $cvss = CvssCalculator::calculate('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H');
+
+    $data = [
         'scope_id' => $scopeId,
         'vulnerability_type_id' => $cweId,
         'title' => $title,
         'endpoint' => '/concurrent-test',
-        'cvss_vector_claimed' => 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+        'parameter' => null,
         'description' => 'Test lock store',
         'steps_to_reproduce' => str_repeat('Langkah reproduksi valid dan terverifikasi. ', 10),
         'impact' => 'Dampak',
-        'agree_no_privacy_violation' => '1',
-        'agree_no_destruction' => '1',
-        'agree_in_scope_only' => '1',
-    ]);
-    $request->setUserResolver(fn () => $user);
+        'remediation' => 'Remediasi',
+    ];
 
     try {
-        app(ReportController::class)->store($request);
+        app(ReportSubmissionService::class)->submit($user, $team, $data, $cvss);
         $this->line('NO_LOCK_DETECTED');
 
         return 0;

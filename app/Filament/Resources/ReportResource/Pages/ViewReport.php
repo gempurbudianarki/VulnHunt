@@ -29,14 +29,18 @@ class ViewReport extends ViewRecord
                 ->visible(fn () => $this->record->status === 'submitted')
                 ->requiresConfirmation()
                 ->action(function () {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'in_review',
-                        auth()->user(),
-                        ['reason' => 'Staf mulai memeriksa laporan temuan.']
-                    );
-                    $this->refreshFormData(['status', 'triaged_by', 'triaged_at']);
-                    Notification::make()->success()->title('Status laporan berhasil diubah ke In Review.')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'in_review',
+                            auth()->user(),
+                            ['reason' => 'Staf mulai memeriksa laporan temuan.']
+                        );
+                        $this->refreshFormData(['status', 'triaged_by', 'triaged_at']);
+                        Notification::make()->success()->title('Status laporan berhasil diubah ke In Review.')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 2. Minta Informasi Tambahan (in_review -> needs_info)
@@ -53,14 +57,18 @@ class ViewReport extends ViewRecord
                         ->rows(4),
                 ])
                 ->action(function (array $data) {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'needs_info',
-                        auth()->user(),
-                        ['reason' => $data['reason']]
-                    );
-                    $this->refreshFormData(['status']);
-                    Notification::make()->success()->title('Status diubah ke Needs Info dan pertanyaan dikirim ke tim.')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'needs_info',
+                            auth()->user(),
+                            ['reason' => $data['reason']]
+                        );
+                        $this->refreshFormData(['status']);
+                        Notification::make()->success()->title('Status diubah ke Needs Info dan pertanyaan dikirim ke tim.')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 3. Tetapkan Laporan Valid (in_review -> valid)
@@ -103,20 +111,24 @@ class ViewReport extends ViewRecord
                         ->nullable(),
                 ])
                 ->action(function (array $data) {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'valid',
-                        auth()->user(),
-                        [
-                            'cvss_vector_final' => $data['cvss_vector_final'],
-                            'quality_factor' => (float) $data['quality_factor'],
-                            'reason' => $data['reason'] ?? null,
-                            'points_override' => filled($data['points_override'] ?? null) ? (int) $data['points_override'] : null,
-                            'points_override_note' => $data['points_override_note'] ?? null,
-                        ]
-                    );
-                    $this->refreshFormData(['status', 'points_awarded', 'cvss_vector_final', 'cvss_score_final', 'severity_final', 'closed_at']);
-                    Notification::make()->success()->title('Laporan berhasil ditetapkan VALID dan poin telah dihitung!')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'valid',
+                            auth()->user(),
+                            [
+                                'cvss_vector_final' => $data['cvss_vector_final'],
+                                'quality_factor' => (float) $data['quality_factor'],
+                                'reason' => $data['reason'] ?? null,
+                                'points_override' => filled($data['points_override'] ?? null) ? (int) $data['points_override'] : null,
+                                'points_override_note' => $data['points_override_note'] ?? null,
+                            ]
+                        );
+                        $this->refreshFormData(['status', 'points_awarded', 'cvss_vector_final', 'cvss_score_final', 'severity_final', 'closed_at']);
+                        Notification::make()->success()->title('Laporan berhasil ditetapkan VALID dan poin telah dihitung!')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 4. Tolak Laporan (in_review -> invalid)
@@ -133,14 +145,18 @@ class ViewReport extends ViewRecord
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'invalid',
-                        auth()->user(),
-                        ['reason' => $data['reason']]
-                    );
-                    $this->refreshFormData(['status', 'points_awarded', 'closed_at']);
-                    Notification::make()->success()->title('Laporan ditolak (Invalid).')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'invalid',
+                            auth()->user(),
+                            ['reason' => $data['reason']]
+                        );
+                        $this->refreshFormData(['status', 'points_awarded', 'closed_at']);
+                        Notification::make()->success()->title('Laporan ditolak (Invalid).')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 5. Tandai Duplikat (in_review -> duplicate)
@@ -168,17 +184,21 @@ class ViewReport extends ViewRecord
                         ->rows(2),
                 ])
                 ->action(function (array $data) {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'duplicate',
-                        auth()->user(),
-                        [
-                            'duplicate_of' => (int) $data['duplicate_of'],
-                            'reason' => $data['reason'] ?? null,
-                        ]
-                    );
-                    $this->refreshFormData(['status', 'duplicate_of', 'points_awarded', 'closed_at']);
-                    Notification::make()->success()->title('Laporan ditandai Duplikat.')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'duplicate',
+                            auth()->user(),
+                            [
+                                'duplicate_of' => (int) $data['duplicate_of'],
+                                'reason' => $data['reason'] ?? null,
+                            ]
+                        );
+                        $this->refreshFormData(['status', 'duplicate_of', 'points_awarded', 'closed_at']);
+                        Notification::make()->success()->title('Laporan ditandai Duplikat.')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 6. Tandai Rewarded (valid -> rewarded)
@@ -189,14 +209,18 @@ class ViewReport extends ViewRecord
                 ->visible(fn () => $this->record->status === 'valid')
                 ->requiresConfirmation()
                 ->action(function () {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'rewarded',
-                        auth()->user(),
-                        ['reason' => 'Bounty/hadiah telah diserahkan kepada tim.']
-                    );
-                    $this->refreshFormData(['status']);
-                    Notification::make()->success()->title('Status laporan diperbarui menjadi Rewarded.')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'rewarded',
+                            auth()->user(),
+                            ['reason' => 'Bounty/hadiah telah diserahkan kepada tim.']
+                        );
+                        $this->refreshFormData(['status']);
+                        Notification::make()->success()->title('Status laporan diperbarui menjadi Rewarded.')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 7. Buka Kembali Keputusan (valid/invalid/duplicate/rewarded -> in_review)
@@ -204,7 +228,9 @@ class ViewReport extends ViewRecord
                 ->label('Buka Kembali Keputusan (Reopen)')
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
-                ->visible(fn () => in_array($this->record->status, ['valid', 'invalid', 'duplicate', 'rewarded'], true))
+                ->visible(fn () => in_array($this->record->status, ['valid', 'invalid', 'duplicate', 'rewarded'], true)
+                    && ($this->record->status !== 'rewarded' || auth()->user()->hasRole('admin'))
+                )
                 ->form([
                     Textarea::make('reason')
                         ->label('Alasan Membuka Kembali Keputusan (Wajib)')
@@ -213,14 +239,18 @@ class ViewReport extends ViewRecord
                         ->rows(3),
                 ])
                 ->action(function (array $data) {
-                    app(ReportStateMachine::class)->transition(
-                        $this->record,
-                        'in_review',
-                        auth()->user(),
-                        ['reason' => $data['reason']]
-                    );
-                    $this->refreshFormData(['status', 'points_awarded', 'closed_at']);
-                    Notification::make()->success()->title('Keputusan dibuka kembali. Status laporan kembali ke In Review dan poin direset.')->send();
+                    try {
+                        app(ReportStateMachine::class)->transition(
+                            $this->record,
+                            'in_review',
+                            auth()->user(),
+                            ['reason' => $data['reason']]
+                        );
+                        $this->refreshFormData(['status', 'points_awarded', 'closed_at']);
+                        Notification::make()->success()->title('Keputusan dibuka kembali. Status laporan kembali ke In Review dan poin direset.')->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->danger()->title('Aksi Ditolak')->body($e->getMessage())->send();
+                    }
                 }),
 
             // 8. Tambah Komentar (Internal Staf / Publik)

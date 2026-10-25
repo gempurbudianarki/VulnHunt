@@ -5,14 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\ReportAttachment;
 use App\Models\ReportComment;
-use App\Models\ReportStatusHistory;
 use App\Models\ReportVersion;
 use App\Models\Scope;
-use App\Models\Team;
 use App\Models\VulnerabilityType;
 use App\Services\CompetitionSettings;
 use App\Services\CvssCalculator;
 use App\Services\ReportStateMachine;
+use App\Services\ReportSubmissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -145,99 +144,16 @@ class ReportController extends Controller
             ]);
         }
 
-        // 3. Transaksi DB dengan Pessimistic Locking untuk Cek Kuota & Anti-Race Condition
-        return DB::transaction(function () use ($user, $userTeam, $validated, $cvss, $request) {
-            $team = Team::where('id', $userTeam->id)->lockForUpdate()->firstOrFail();
-            $settings = app(CompetitionSettings::class);
+        // 3. Simpan Laporan via ReportSubmissionService (Pessimistic Locking & Anti-Race Condition)
+        $report = app(ReportSubmissionService::class)->submit($user, $userTeam, $validated, $cvss);
 
-            if (! $settings->isSubmissionOpen()) {
-                throw ValidationException::withMessages([
-                    'title' => ['Pengiriman laporan saat ini sedang ditutup oleh panitia.'],
-                ]);
-            }
+        // 4. Proses Berkas Lampiran (jika ada)
+        if ($request->hasFile('attachments')) {
+            $this->processAttachments($request->file('attachments'), $report);
+        }
 
-            if ($team->isDisqualified()) {
-                throw ValidationException::withMessages([
-                    'title' => ['Tim Anda telah didiskualifikasi dari perlombaan.'],
-                ]);
-            }
-
-            // Invarian Kuota: Cek kuota laporan aktif (submitted + in_review) dengan locking read
-            $activeCount = Report::where('team_id', $team->id)
-                ->whereIn('status', ['submitted', 'in_review'])
-                ->lockForUpdate()
-                ->count();
-            $effectiveQuota = $team->effectiveQuota();
-
-            if ($activeCount >= $effectiveQuota) {
-                throw ValidationException::withMessages([
-                    'title' => ["Tim Anda telah mencapai batas kuota laporan aktif ({$activeCount}/{$effectiveQuota})."],
-                ]);
-            }
-
-            // Cek batas total laporan jika dikonfigurasi
-            $maxTotal = $settings->get('max_total_reports_per_team');
-            if ($maxTotal !== null && $team->reports()->count() >= (int) $maxTotal) {
-                throw ValidationException::withMessages([
-                    'title' => ["Tim Anda telah mencapai batas total laporan ({$maxTotal} laporan)."],
-                ]);
-            }
-
-            // Buat record Laporan (submitted_at tidak diisi dari input, diisi otomatis oleh server)
-            $report = Report::create([
-                'team_id' => $team->id,
-                'reported_by' => $user->id,
-                'scope_id' => (int) $validated['scope_id'],
-                'vulnerability_type_id' => (int) $validated['vulnerability_type_id'],
-                'title' => trim($validated['title']),
-                'endpoint' => trim($validated['endpoint']),
-                'parameter' => ! empty($validated['parameter']) ? trim($validated['parameter']) : null,
-                'cvss_vector_claimed' => $cvss['vector'],
-                'cvss_score_claimed' => $cvss['score'],
-                'severity_claimed' => $cvss['severity'],
-                'description' => $validated['description'],
-                'steps_to_reproduce' => $validated['steps_to_reproduce'],
-                'impact' => $validated['impact'],
-                'remediation' => $validated['remediation'] ?? null,
-                'status' => 'submitted',
-                'revision_no' => 1,
-            ]);
-
-            // Catat Riwayat Status Awal
-            ReportStatusHistory::create([
-                'report_id' => $report->id,
-                'from_status' => null,
-                'to_status' => 'submitted',
-                'changed_by' => $user->id,
-                'reason' => 'Pengiriman awal laporan kerentanan.',
-            ]);
-
-            // Catat Snapshot Versi 1
-            ReportVersion::create([
-                'report_id' => $report->id,
-                'revision_no' => 1,
-                'snapshot' => [
-                    'title' => $report->title,
-                    'description' => $validated['description'],
-                    'steps_to_reproduce' => $validated['steps_to_reproduce'],
-                    'impact' => $validated['impact'],
-                    'remediation' => $validated['remediation'] ?? null,
-                    'cvss_vector' => $cvss['vector'],
-                    'cvss_score' => $cvss['score'],
-                    'severity' => $cvss['severity'],
-                    'change_summary' => 'Versi awal pengajuan laporan.',
-                ],
-                'created_by' => $user->id,
-            ]);
-
-            // Proses Berkas Lampiran (jika ada)
-            if ($request->hasFile('attachments')) {
-                $this->processAttachments($request->file('attachments'), $report);
-            }
-
-            return redirect()->route('reports.show', $report->code)
-                ->with('success', "Laporan kerentanan berhasil dikirim dengan kode {$report->code}!");
-        });
+        return redirect()->route('reports.show', $report->code)
+            ->with('success', "Laporan kerentanan berhasil dikirim dengan kode {$report->code}!");
     }
 
     public function show(Request $request, string $code)
@@ -351,57 +267,61 @@ class ReportController extends Controller
             'steps_to_reproduce.min' => 'Revisi langkah reproduksi minimal 100 karakter jika disertakan.',
         ]);
 
-        DB::transaction(function () use ($report, $user, $validated, $request) {
-            // 1. Simpan komentar publik balasan tim
-            ReportComment::create([
-                'report_id' => $report->id,
-                'user_id' => $user->id,
-                'is_internal' => false,
-                'body' => $validated['reply_message'],
-            ]);
-
-            // 2. Jika ada revisi steps_to_reproduce, perbarui laporan dan catat versi baru
-            $newRevisionNo = $report->revision_no + 1;
-            if (! empty($validated['steps_to_reproduce'])) {
-                $report->update([
-                    'steps_to_reproduce' => $validated['steps_to_reproduce'],
-                    'revision_no' => $newRevisionNo,
-                ]);
-
-                ReportVersion::create([
+        try {
+            DB::transaction(function () use ($report, $user, $validated, $request) {
+                // 1. Simpan komentar publik balasan tim
+                ReportComment::create([
                     'report_id' => $report->id,
-                    'revision_no' => $newRevisionNo,
-                    'snapshot' => [
-                        'title' => $report->title,
-                        'description' => $report->description,
-                        'steps_to_reproduce' => $validated['steps_to_reproduce'],
-                        'impact' => $report->impact,
-                        'remediation' => $report->remediation,
-                        'cvss_vector' => $report->cvss_vector_claimed,
-                        'cvss_score' => $report->cvss_score_claimed,
-                        'severity' => $report->severity_claimed,
-                        'change_summary' => 'Revisi langkah reproduksi atas permintaan admin.',
-                    ],
-                    'created_by' => $user->id,
+                    'user_id' => $user->id,
+                    'is_internal' => false,
+                    'body' => $validated['reply_message'],
                 ]);
-            }
 
-            // 3. Proses lampiran tambahan (jika ada)
-            if ($request->hasFile('attachments')) {
-                $this->processAttachments($request->file('attachments'), $report);
-            }
+                // 2. Jika ada revisi steps_to_reproduce, perbarui laporan dan catat versi baru
+                $newRevisionNo = $report->revision_no + 1;
+                if (! empty($validated['steps_to_reproduce'])) {
+                    $report->update([
+                        'steps_to_reproduce' => $validated['steps_to_reproduce'],
+                        'revision_no' => $newRevisionNo,
+                    ]);
 
-            // 4. Invarian Opsi B: Ubah status dari needs_info -> in_review melalui ReportStateMachine (EXEMPT dari cek kuota aktif)
-            app(ReportStateMachine::class)->transition(
-                $report,
-                'in_review',
-                $user,
-                [
-                    'is_team_reply' => true,
-                    'reason' => 'Tim menanggapi permintaan informasi panitia.',
-                ]
-            );
-        });
+                    ReportVersion::create([
+                        'report_id' => $report->id,
+                        'revision_no' => $newRevisionNo,
+                        'snapshot' => [
+                            'title' => $report->title,
+                            'description' => $report->description,
+                            'steps_to_reproduce' => $validated['steps_to_reproduce'],
+                            'impact' => $report->impact,
+                            'remediation' => $report->remediation,
+                            'cvss_vector' => $report->cvss_vector_claimed,
+                            'cvss_score' => $report->cvss_score_claimed,
+                            'severity' => $report->severity_claimed,
+                            'change_summary' => 'Revisi langkah reproduksi atas permintaan admin.',
+                        ],
+                        'created_by' => $user->id,
+                    ]);
+                }
+
+                // 3. Proses lampiran tambahan (jika ada)
+                if ($request->hasFile('attachments')) {
+                    $this->processAttachments($request->file('attachments'), $report);
+                }
+
+                // 4. Invarian Opsi B: Ubah status dari needs_info -> in_review melalui ReportStateMachine (EXEMPT dari cek kuota aktif)
+                app(ReportStateMachine::class)->transition(
+                    $report,
+                    'in_review',
+                    $user,
+                    [
+                        'is_team_reply' => true,
+                        'reason' => 'Tim menanggapi permintaan informasi panitia.',
+                    ]
+                );
+            });
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('reports.show', $report->code)
             ->with('success', 'Tanggapan berhasil dikirim! Status laporan kini kembali menjadi Dalam Review (in_review).');

@@ -77,3 +77,35 @@ php artisan test
 # Jalankan pengujian konkurensi database nyata (MySQL InnoDB Locking)
 php artisan test --filter=MySqlConcurrencyTest
 ```
+
+---
+
+## 6. Kebutuhan Menjalankan Queue Worker di Produksi (Supervisor / Cron)
+
+Sistem notifikasi email platform (perubahan status laporan `ReportStatusChangedNotification` dan pembaruan verifikasi NDA `NdaStatusChangedNotification`) mengimplementasikan kontrak `ShouldQueue` agar performa request HTTP tetap cepat dan responsif tanpa terhambat latensi server SMTP pihak ketiga.
+
+> [!IMPORTANT]
+> **PERINGATAN KRITIS OPERASIONAL PRODUKSI:**
+> Tanpa adanya proses *queue worker* yang berjalan aktif di latar belakang server, **seluruh email notifikasi kepada peserta dan panitia TIDAK AKAN PERNAH TERKIRIM** (pekerjaan pengiriman email akan terus tertumpuk di tabel antrean database `jobs`).
+> 
+> Di lingkungan pengembangan lokal, antrean dapat disetel langsung memproses dengan `QUEUE_CONNECTION=sync` pada file `.env`. Namun di server produksi dengan driver `database` atau `redis`, Anda **wajib** menjalankan proses daemon *queue worker* secara persisten menggunakan **Supervisor** atau **Systemd**:
+> 
+> ```bash
+> php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+> ```
+> 
+> Contoh konfigurasi **Supervisor** (`/etc/supervisor/conf.d/vulnhunt-worker.conf`):
+> ```ini
+> [program:vulnhunt-worker]
+> process_name=%(program_name)s_%(process_num)02d
+> command=php /var/www/vulnhunt/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+> autostart=true
+> autorestart=true
+> stopasgroup=true
+> killasgroup=true
+> user=www-data
+> numprocs=2
+> redirect_stderr=true
+> stdout_logfile=/var/www/vulnhunt/storage/logs/worker.log
+> stopwaitsecs=3600
+> ```
