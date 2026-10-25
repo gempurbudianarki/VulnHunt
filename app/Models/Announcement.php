@@ -37,6 +37,19 @@ class Announcement extends Model
                 $announcement->created_by = auth()->id();
             }
         });
+
+        static::created(function (Announcement $announcement) {
+            if ($announcement->is_pinned) {
+                try {
+                    $participants = User::role('participant')->where('is_active', true)->get();
+                    foreach ($participants as $p) {
+                        $p->notify(new \App\Notifications\ImportantAnnouncementNotification($announcement));
+                    }
+                } catch (\Throwable $e) {
+                    // Jangan gagalkan pembuatan pengumuman jika antrean gagal
+                }
+            }
+        });
     }
 
     public function creator(): BelongsTo

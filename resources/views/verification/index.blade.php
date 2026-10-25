@@ -7,7 +7,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
                 Verifikasi Surat Perjanjian (NDA)
             </h1>
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs text-slate-600 mt-1">
                 Sesuai aturan lomba, setiap anggota tim wajib mengunggah lembar NDA bertanda tangan untuk memperoleh perlindungan safe harbor dan membuka akses target scope.
             </p>
         </div>
@@ -26,10 +26,10 @@
                             <span class="clay-badge bg-emerald-50 text-emerald-800 border-emerald-200 text-xs">
                                 Status: Disetujui (Approved)
                             </span>
-                            <h3 class="text-lg font-bold text-slate-900 mt-2">
+                            <h2 class="text-lg font-bold text-slate-900 mt-2">
                                 Verifikasi NDA Anda Telah Diterima Panitia
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-1">
+                            </h2>
+                            <p class="text-xs text-slate-600 mt-1">
                                 Nomor Dokumen: <span class="font-mono font-bold text-slate-800">{{ $latestNda->document_number }}</span> &bull; Disetujui pada: <span class="font-mono">{{ $latestNda->reviewed_at?->format('d M Y, H:i') }} WIB</span>
                             </p>
                             <p class="text-xs text-emerald-700 font-semibold mt-3 flex items-center gap-1.5">
@@ -58,10 +58,10 @@
                         <span class="clay-badge bg-amber-50 text-amber-800 border-amber-200 text-xs">
                             Status: Menunggu Review Panitia
                         </span>
-                        <h3 class="text-lg font-bold text-slate-900 mt-2">
+                        <h2 class="text-lg font-bold text-slate-900 mt-2">
                             Berkas NDA Anda Sedang Diperiksa Panitia
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-1">
+                        </h2>
+                        <p class="text-xs text-slate-600 mt-1">
                             Nomor Dokumen: <span class="font-mono font-bold text-slate-800">{{ $latestNda->document_number }}</span> &bull; Diunggah pada: <span class="font-mono">{{ $latestNda->submitted_at?->format('d M Y, H:i') }} WIB</span>
                         </p>
                         <p class="text-xs text-slate-600 mt-2">
@@ -82,9 +82,9 @@
                         <span class="clay-badge bg-rose-50 text-rose-800 border-rose-200 text-xs">
                             Status: Pengajuan Ditolak
                         </span>
-                        <h3 class="text-lg font-bold text-slate-900 mt-2">
+                        <h2 class="text-lg font-bold text-slate-900 mt-2">
                             Berkas NDA Sebelumnya Ditolak Panitia
-                        </h3>
+                        </h2>
                         <div class="mt-2.5 p-3.5 rounded-clay-md bg-rose-50 border border-rose-200 text-xs text-rose-900">
                             <strong>Alasan Penolakan:</strong> {{ $latestNda->reject_reason ?? 'Tanda tangan tidak jelas atau nomor dokumen tidak sesuai.' }}
                         </div>

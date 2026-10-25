@@ -148,20 +148,26 @@
         </tr>
     </table>
 
-    <div class="clause">
-        <div class="clause-title">Pasal 1: Kerahasiaan Informasi Kerentanan</div>
-        Saya menyatakan dan berjanji secara sadar bahwa seluruh temuan kerentanan, bukti eksploitasi (Proof-of-Concept), data teknis, maupun informasi lain yang diperoleh selama proses pengujian aset UBBG bersifat <strong>RAHASIA</strong>. Saya tidak akan membocorkan, mempublikasikan, maupun membagikan temuan tersebut kepada pihak mana pun tanpa izin tertulis dari Panitia UBBG.
-    </div>
+    @if(!empty($customText))
+        <div class="clause" style="white-space: pre-line;">
+            {!! nl2br(e($customText)) !!}
+        </div>
+    @else
+        <div class="clause">
+            <div class="clause-title">Pasal 1: Kerahasiaan Informasi Kerentanan</div>
+            Saya menyatakan dan berjanji secara sadar bahwa seluruh temuan kerentanan, bukti eksploitasi (Proof-of-Concept), data teknis, maupun informasi lain yang diperoleh selama proses pengujian aset UBBG bersifat <strong>RAHASIA</strong>. Saya tidak akan membocorkan, mempublikasikan, maupun membagikan temuan tersebut kepada pihak mana pun tanpa izin tertulis dari Panitia UBBG.
+        </div>
 
-    <div class="clause">
-        <div class="clause-title">Pasal 2: Batasan Etis Pengujian</div>
-        Saya berjanji hanya melakukan pengujian pada target yang dinyatakan resmi dalam scope perlombaan, tidak melakukan serangan penolakan layanan (DoS/DDoS), tidak merusak atau menghapus data, dan tidak mengakses maupun mengunduh data pribadi sivitas akademika kampus.
-    </div>
+        <div class="clause">
+            <div class="clause-title">Pasal 2: Batasan Etis Pengujian</div>
+            Saya berjanji hanya melakukan pengujian pada target yang dinyatakan resmi dalam scope perlombaan, tidak melakukan serangan penolakan layanan (DoS/DDoS), tidak merusak atau menghapus data, dan tidak mengakses maupun mengunduh data pribadi sivitas akademika kampus.
+        </div>
 
-    <div class="clause">
-        <div class="clause-title">Pasal 3: Perlindungan Safe Harbor</div>
-        Pihak Universitas Bina Bangsa Getsempena menjamin perlindungan hukum (safe harbor) kepada peserta selama mematuhi seluruh klausul perjanjian ini dan Rules of Engagement yang berlaku.
-    </div>
+        <div class="clause">
+            <div class="clause-title">Pasal 3: Perlindungan Safe Harbor</div>
+            Pihak Universitas Bina Bangsa Getsempena menjamin perlindungan hukum (safe harbor) kepada peserta selama mematuhi seluruh klausul perjanjian ini dan Rules of Engagement yang berlaku.
+        </div>
+    @endif
 
     <div class="signature-section">
         <div class="signature-box">

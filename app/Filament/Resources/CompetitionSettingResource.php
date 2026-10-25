@@ -153,6 +153,16 @@ class CompetitionSettingResource extends Resource
                             ];
                         }
 
+                        if ($key === 'nda_template_text') {
+                            return [
+                                Textarea::make('value')
+                                    ->label('Teks Klausul Template NDA')
+                                    ->helperText('Teks khusus klausul surat perjanjian NDA yang dicetak pada PDF yang diunduh peserta (kosongkan untuk default).')
+                                    ->rows(8)
+                                    ->default($current ?? ''),
+                            ];
+                        }
+
                         if ($key === 'allowed_email_domains') {
                             return [
                                 TagsInput::make('value')
@@ -328,11 +338,11 @@ class CompetitionSettingResource extends Resource
             return is_numeric($raw) ? (int) $raw : $raw;
         }
 
-        if ($key === 'max_total_reports_per_team') {
+        if ($key === 'max_total_reports_per_team' || $key === 'nda_template_text') {
             if ($raw === null || trim((string) $raw) === '') {
                 return null;
             }
-            return is_numeric($raw) ? (int) $raw : $raw;
+            return $key === 'max_total_reports_per_team' ? (is_numeric($raw) ? (int) $raw : $raw) : trim((string) $raw);
         }
 
         if ($key === 'duplicate_points') {
@@ -361,6 +371,8 @@ class CompetitionSettingResource extends Resource
             'triage_weights' => 'Bobot prioritas antrian triage per severity',
             'triage_age_factor' => 'Faktor pengali umur laporan pada prioritas antrian triage',
             'rules_version' => 'Versi aturan lomba (jika dinaikkan, seluruh peserta wajib setuju ulang)',
+            'nda_template_version' => 'Nomor versi template surat perjanjian NDA yang dicetak pada dokumen PDF',
+            'nda_template_text' => 'Teks klausul khusus template NDA (kosongkan / null untuk menggunakan teks default)',
             'allowed_email_domains' => 'Daftar domain email resmi yang diizinkan (kosong = semua domain)',
             'registration_rate_limit_per_hour' => 'Batas laju registrasi per jam',
             'report_rate_limit_per_hour' => 'Batas pengiriman laporan per jam per tim',

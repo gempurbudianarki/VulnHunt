@@ -47,7 +47,7 @@ class PointsCalculator
         $base = (int) ($pointsPerSeverity[$severityFinal] ?? 0);
 
         // Bobot kritis aset dari scope (rentang 1.00 sampai 2.00, default 1.00)
-        $scope = $report->scope;
+        $scope = $report->relationLoaded('scope') ? $report->scope : $report->loadMissing('scope')->scope;
         $criticalityWeight = $scope ? (float) $scope->criticality_weight : 1.00;
         if ($criticalityWeight < 1.00) {
             $criticalityWeight = 1.00;
@@ -121,7 +121,8 @@ class PointsCalculator
         $steps = (array) $this->settings->get('diminishing_steps', [1.0, 0.5, 0.25]);
 
         DB::transaction(function () use ($teamId, $scopeId, $vulnerabilityTypeId, $steps) {
-            $reports = Report::where('team_id', $teamId)
+            $reports = Report::with('scope')
+                ->where('team_id', $teamId)
                 ->where('scope_id', $scopeId)
                 ->where('vulnerability_type_id', $vulnerabilityTypeId)
                 ->whereIn('status', ['valid', 'rewarded'])

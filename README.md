@@ -1,146 +1,344 @@
 # Platform Lomba Bug Bounty UBBG (UBBG VulnHunt)
 
-Platform resmi pelaksanaan kompetisi bug bounty kampus Universitas Bina Bangsa Getsempena (UBBG). Platform ini mengelola seluruh siklus kompetisi mulai dari pendaftaran tim mahasiswa, verifikasi NDA, pelaporan celah keamanan berbasis CVSS v3.1, sistem triage laporan oleh panitia, hingga papan peringkat (*leaderboard*).
+Platform resmi pelaksanaan sayembara bug bounty kampus Universitas Bina Bangsa Getsempena (UBBG). Platform ini mengelola seluruh siklus kompetisi mulai dari pendaftaran tim mahasiswa, verifikasi dokumen NDA bermaterai, pelaporan celah keamanan berbasis kalkulator CVSS v3.1, antrean triage dan penilaian berbobot oleh panitia, hingga papan peringkat (*leaderboard*) publik dan ekspor audit.
 
 ---
 
-## 1. Kebutuhan Server (Server Requirements)
+## 1. Kebutuhan Sistem & Konfigurasi Server
 
-Untuk menjalankan platform ini dengan stabil di lingkungan produksi maupun pengujian beban penuh, konfigurasi PHP (`php.ini`) minimal berikut wajib dipenuhi:
-
-| Parameter Konfigurasi | Nilai Minimal | Nilai Rekomendasi | Keterangan |
+| Parameter | Nilai Minimal | Rekomendasi Produksi | Catatan Kritis |
 | :--- | :--- | :--- | :--- |
-| `post_max_size` | **256M** | **512M** | Menerima payload laporan temuan beserta hingga 8 berkas lampiran (PoC video/gambar/dokumen). |
-| `upload_max_filesize` | **25M** | **50M** | Batas maksimal per berkas lampiran sesuai spesifikasi lomba (25 MB per berkas). |
-| `memory_limit` | **512M** | **1024M** | Pemrosesan citra bukti eksploitasi beresolusi tinggi (hingga 4096x4096px) menggunakan Intervention Image / GD. |
-| `max_execution_time` | **120s** | **300s** | Waktu eksekusi yang cukup untuk upload berkas berukuran besar dan pemrosesan resize/strip EXIF. |
-| `max_input_time` | **120s** | **300s** | Waktu parsing data input formulir upload. |
-
-> [!WARNING]
-> **Catatan Konfigurasi Lingkungan Lokal (Laragon):**
-> Pada lingkungan pengembangan lokal bawaan Laragon, nilai konfigurasi umumnya jauh lebih longgar (`post_max_size = 2G`, `upload_max_filesize = 2G`, `memory_limit = 512M`). Pastikan server produksi dikonfigurasi secara eksplisit sesuai tabel di atas dan tidak mengandalkan default php-fpm minimal (seperti default 2M/8M) yang akan menyebabkan unggahan terpotong.
+| **PHP** | 8.2+ | 8.2 atau 8.3 | Ekstensi: `pdo_mysql`, `gd`, `intl`, `mbstring`, `openssl`, `bcmath`, `fileinfo` |
+| **MySQL / MariaDB** | MySQL 8.0+ / MariaDB 10.6+ | MySQL 8.0.30+ | Wajib InnoDB storage engine untuk mendukung `SELECT ... FOR UPDATE` |
+| **Node.js** | 18+ | 20+ LTS | Untuk kompilasi Vite frontend |
+| `post_max_size` | **256M** | **512M** | Menerima payload laporan temuan beserta hingga 8 berkas lampiran (PoC) |
+| `upload_max_filesize` | **25M** | **50M** | Batas maksimal per berkas lampiran (25 MB per berkas) |
+| `memory_limit` | **512M** | **1024M** | Pemrosesan sanitasi gambar beresolusi hingga 4096x4096px via Intervention Image |
+| `max_execution_time` | **120s** | **300s** | Waktu pemrosesan upload dan penghapusan EXIF |
 
 ---
 
-## 2. Catatan Keamanan Kritis: Kunci Enkripsi (`APP_KEY`)
-
-Seluruh muatan teknis eksploitasi dan rincian celah keamanan pada tabel `reports`:
-- `description` (Deskripsi celah)
-- `steps_to_reproduce` (Langkah-langkah reproduksi eksploitasi)
-- `impact` (Dampak kerentanan)
-- `remediation` (Rekomendasi perbaikan)
-
-disimpan di database dalam bentuk **ciphertext terenkripsi** menggunakan algoritma AES-256-CBC melalui Laravel Cryptographic Services dengan basis kunci `APP_KEY` pada file `.env`.
-
-> [!CAUTION]
-> **PERINGATAN INTEGRITAS & KETERSEDIAAN DATA:**
-> Jika `APP_KEY` hilang, ter-reset (`php artisan key:generate`), atau berganti, **seluruh data laporan kerentanan yang telah dikirim oleh peserta TIDAK AKAN BISA DIDEKRIPSI LAGI SECARA PERMANEN**.
-> 
-> **Wajib bagi Panitia / Sysadmin:**
-> 1. Simpan salinan cadangan (*backup*) `APP_KEY` di tempat terpisah yang aman (misalnya: *secure vault*, password manager terenkripsi panitia, atau *cold storage* fisik).
-> 2. Jangan pernah melakukan `php artisan key:generate` setelah platform mulai menerima laporan peserta!
-
----
-
-## 3. Catatan Keamanan untuk Triager & Juri (Pemeriksa Laporan)
-
-Berkas lampiran yang diunggah oleh peserta (gambar, rekaman video PoC, dokumen PDF, teks, atau markdown) berasal dari lingkungan peserta eksternal dan berpotensi memuat berkas berbahaya, eksploitasi *parser*, atau malware.
-
-> [!CAUTION]
-> **PROTOKOL PEMERIKSAAN BERKAS LAMPIRAN BAGI TRIAGER:**
-> 1. **Gunakan Lingkungan Terisolasi**: Selalu unduh dan buka berkas lampiran di dalam **Virtual Machine (VM) terisolasi** (*sandbox*) atau browser dengan profil terisolasi (misalnya disposable browser instance).
-> 2. **Jangan Eksekusi Langsung di Host Utama**: Jangan pernah mengekstrak, mengeksekusi, atau membuka dokumen lampiran peserta secara langsung di komputer kerja utama Anda tanpa isolasi.
-> 3. Meskipun server telah membersihkan metadata EXIF, melarang berkas SVG, dan memaksa unduhan sebagai attachment (`nosniff`), risiko *zero-day* pada penampil berkas pihak ketiga (PDF viewer/video player) tetap ada.
-
----
-
-## 4. Alur Autentikasi Staf & Keamanan Panel Filament
-
-1. **Akses Panel Admin & Triager (`/admin`)**:
-   - Hanya akun dengan peran `admin` atau `triager` yang memiliki izin akses.
-   - Hak akses ditegakkan melalui implementasi `FilamentUser::canAccessPanel()`.
-2. **Wajib Two-Factor Authentication (2FA TOTP)**:
-   - Panel admin mewajibkan 2FA TOTP aktif untuk seluruh staf, termasuk di lingkungan `local`.
-   - Halaman login bawaan Filament (`/admin/login`) dinonaktifkan demi mencegah bypass tantangan 2FA. Seluruh staf diarahkan login melalui pipeline Fortify (`/login`).
-   - Akun staf yang baru dibuat wajib mengganti password awal dan mengaktifkan TOTP 2FA pada login pertama sebelum dapat membuka panel admin.
-
----
-
-## 5. Menjalankan Pengujian (Testing)
-
-Pengujian unit dan fitur dijalankan menggunakan Pest PHP:
+## 2. Instalasi & Setup Cepat (Quickstart)
 
 ```bash
-# Jalankan seluruh rangkaian pengujian fitur
-php artisan test
+# 1. Clone repositori & masuk ke direktori
+cd /path/to/lombasaiber
 
-# Jalankan pengujian konkurensi database nyata (MySQL InnoDB Locking)
-php artisan test --filter=MySqlConcurrencyTest
+# 2. Salin environment file
+cp .env.example .env
+
+# 3. Pasang dependensi PHP & Node.js
+composer install --no-dev --optimize-autoloader
+npm ci
+
+# 4. Generate Application Key (KUNCI INI HARUS DICADANGKAN TERPISAH)
+php artisan key:generate
+
+# 5. Jalankan migrasi basis data
+php artisan migrate --force
+
+# 6. Kompilasi asset frontend produksi
+npm run build
+
+# 7. Hubungkan storage publik (hanya untuk aset statis non-privat)
+php artisan storage:link
+
+# 8. Verifikasi kesiapan server produksi
+php artisan vulnhunt:preflight
 ```
 
 ---
 
-## 6. Kebutuhan Menjalankan Queue Worker di Produksi (Supervisor / Cron)
+## 3. Daftar Lengkap Variabel Lingkungan (`.env`)
 
-Sistem notifikasi email platform (perubahan status laporan `ReportStatusChangedNotification` dan pembaruan verifikasi NDA `NdaStatusChangedNotification`) mengimplementasikan kontrak `ShouldQueue` agar performa request HTTP tetap cepat dan responsif tanpa terhambat latensi server SMTP pihak ketiga.
+```ini
+# ==============================================================================
+# IDENTITAS APLIKASI & KEAMANAN DASAR
+# ==============================================================================
+APP_NAME="VulnHunt UBBG"
+APP_ENV=production                  # local, testing, atau production
+APP_KEY=                            # Kunci AES-256 (Dilarang dirotasi sembarangan)
+APP_DEBUG=false                     # WAJIB false di lingkungan produksi
+APP_TIMEZONE=Asia/Jakarta           # WAJIB Asia/Jakarta (WIB)
+APP_URL=https://vulnhunt.ubbg.ac.id # WAJIB HTTPS di produksi
+
+# ==============================================================================
+# PENGATURAN LOGGING & PEMELIHARAAN
+# ==============================================================================
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=error
+
+# ==============================================================================
+# KONEKSI BASIS DATA (MYSQL DENGAN TIMEZONE +07:00)
+# ==============================================================================
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=lombasaiber
+DB_USERNAME=vulnhunt_user
+DB_PASSWORD=SuperSecretPasswordSecure123!
+
+# Koneksi Database Pengujian (Digunakan oleh Pest/PHPUnit & MySqlConcurrencyTest)
+DB_TEST_DATABASE=lombasaiber_test
+DB_TEST_USERNAME=vulnhunt_test
+DB_TEST_PASSWORD=SecretTestPass123!
+
+# ==============================================================================
+# SESI & COOKIE KEAMANAN
+# ==============================================================================
+SESSION_DRIVER=database             # database atau redis (hindari 'file' di multi-node)
+SESSION_LIFETIME=120                # 120 menit (idle timeout dikontrol via middleware)
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+SESSION_SECURE_COOKIE=true          # WAJIB true di HTTPS (Secure Cookie Flag)
+SESSION_HTTP_ONLY=true              # WAJIB true (HttpOnly Flag)
+SESSION_SAME_SITE=lax               # Lax (SameSite Cookie Defense)
+
+# ==============================================================================
+# SISTEM KEAMANAN VULNHUNT (SECURITY HEADERS, CSP, & IDLE TIMEOUT)
+# ==============================================================================
+CSP_REPORT_ONLY=false               # true saat peluncuran uji coba, false saat produksi aktif
+IDLE_TIMEOUT_STAFF=30               # 30 menit sesi idle untuk Admin & Triager
+IDLE_TIMEOUT_PARTICIPANT=120        # 120 menit sesi idle untuk Peserta Mahasiswa
+
+# ==============================================================================
+# SISTEM ANTREAN & CACHE
+# ==============================================================================
+QUEUE_CONNECTION=database           # WAJIB database atau redis (DILARANG sync di produksi)
+CACHE_STORE=database                # database atau redis (DILARANG array di produksi)
+CACHE_PREFIX=vulnhunt_cache_
+
+# ==============================================================================
+# SISTEM SURAT ELEKTRONIK (SMTP RESMI KAMPUS)
+# ==============================================================================
+MAIL_MAILER=smtp                    # DILARANG 'log' di lingkungan produksi
+MAIL_HOST=smtp.ubbg.ac.id
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@ubbg.ac.id
+MAIL_PASSWORD=SmtpPasswordSecure456!
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="no-reply@ubbg.ac.id"
+MAIL_FROM_NAME="Panitia VulnHunt UBBG"
+
+# ==============================================================================
+# KREDENSIAL DEMO SEEDER (HANYA UNTUK LOCAL & TESTING)
+# ==============================================================================
+# Variabel ini diabaikan dan dilempar exception di production
+DEMO_ADMIN_PASSWORD=
+DEMO_TRIAGER_PASSWORD=
+DEMO_PARTICIPANT_PASSWORD=
+```
+
+---
+
+## 4. Panduan Deploy Produksi
+
+### A. Menjalankan Queue Worker (Supervisor)
+Platform mengantrekan seluruh email notifikasi (`ReportStatusChangedNotification` dan `NdaStatusChangedNotification`) pada antrean latar belakang. Jika worker mati, email tidak akan pernah sampai.
+
+Konfigurasi Supervisor (`/etc/supervisor/conf.d/vulnhunt-worker.conf`):
+```ini
+[program:vulnhunt-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/vulnhunt/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/www/vulnhunt/storage/logs/worker.log
+stopwaitsecs=3600
+```
+Muat dan jalankan:
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start vulnhunt-worker:*
+```
+
+### B. Menjadwalkan Laravel Cron Scheduler
+Jadwalkan cron bawaan server Linux untuk mengeksekusi scheduler Laravel setiap menit:
+```bash
+* * * * * cd /var/www/vulnhunt && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### C. Izin Berkas Storage & Isolasi Privat
+Berkas bukti eksploitasi dan formulir NDA tersimpan pada disk privat (`storage/app/private`).
+```bash
+# Pastikan kepemilikan oleh pengguna web server
+sudo chown -R www-data:www-data /var/www/vulnhunt/storage /var/www/vulnhunt/bootstrap/cache
+
+# Izin direktori privat: hanya pemilik yang berhak membaca/menulis
+sudo chmod -R 750 /var/www/vulnhunt/storage
+sudo chmod -R 700 /var/www/vulnhunt/storage/app/private
+sudo find /var/www/vulnhunt/storage/app/private -type f -exec chmod 600 {} +
+```
+
+### D. Opsi Integrasi Antivirus ClamAV
+Untuk memindai setiap lampiran PoC terhadap virus/trojan secara *real-time*:
+1. Pasang ClamAV daemon di server:
+   ```bash
+   sudo apt-get install clamav clamav-daemon
+   sudo systemctl enable clamav-daemon
+   sudo systemctl start clamav-daemon
+   ```
+2. Pada middleware upload atau form request, Anda dapat mengaktifkan socket scan via `clamdscan`:
+   ```bash
+   clamdscan --fdpass --no-summary /path/to/uploaded/file
+   ```
+   Jika kode keluar bukan 0, batalkan upload dan tolak berkas dengan pesan infeksi.
+
+---
+
+## 5. Panduan Administrator
+
+1. **Akses Panel Admin**:
+   - URL: `https://vulnhunt.ubbg.ac.id/admin`
+   - Login menggunakan akun ber-role `admin`. Autentikasi 2FA TOTP wajib diaktifkan pada login perdana.
+2. **Pengaturan Lomba (`Competition Settings`)**:
+   - Buka menu **Konfigurasi Kompetisi**.
+   - Atur jendela pendaftaran (`registration_open_at` & `registration_close_at`) dan pengiriman laporan (`submission_open_at` & `submission_close_at`) dalam waktu WIB.
+   - Tetapkan batas kuota laporan aktif tim (default: 5) dan ukuran tim (min: 2, max: 4).
+   - Tentukan mode papan peringkat:
+     - `visible`: Terbuka bebas untuk publik.
+     - `hidden`: Disembunyikan total dari peserta umum (hanya admin yang dapat melihat).
+     - `hidden_until_end`: Otomatis tertutup hingga jendela waktu pengiriman laporan berakhir.
+3. **Verifikasi NDA Peserta**:
+   - Buka menu **Verifikasi NDA**.
+   - Periksa keabsahan identitas KTP/KTM, tanda tangan, dan materai. Setujui (*Approve*) atau tolak (*Reject*) dengan alasan yang jelas.
+4. **Ekspor Data & Audit**:
+   - URL Ekspor Resmi: `/admin/export/reports` dan `/admin/export/leaderboard`.
+   - Data otomatis disanitasi dari formula injection (DDE injection).
+
+---
+
+## 6. Panduan Triager (Pemeriksa Laporan)
+
+1. **Tugas & Tanggung Jawab**:
+   - Triager bertugas memvalidasi keaslian, keparahan (CVSS v3.1), dan kelayakan laporan celah keamanan.
+   - Triager **DILARANG** memverifikasi NDA atau mengubah pengaturan lomba (hak eksklusif Admin).
+2. **SOP WAJIB: Membuka Lampiran di Virtual Machine (VM) Terisolasi**:
+   > [!CAUTION]
+   > Berkas lampiran dikirim oleh pihak luar dan berpotensi memuat muatan eksploitasi zero-day, script berbahaya, atau malware parser.
+   > 
+   > 1. **Dilarang keras** membuka lampiran langsung di komputer kerja utama tanpa isolasi.
+   > 2. Unduh lampiran melalui panel triage, lalu pindahkan dan buka berkas di dalam **Virtual Machine (VM) terisolasi** (misal: VirtualBox/VMware/QEMU) atau sandbox browser terpisah.
+   > 3. Jangan membuka tautan eksternal yang disertakan peserta tanpa proxy investigasi terisolasi.
+3. **Siklus Hidup Triage**:
+   - Ubah status dari `submitted` ke `in_review` saat mulai menganalisis temuan.
+   - Jika butuh info tambahan, ubah status ke `needs_info`. Peserta dapat membalas tanpa mengurangi kuota aktif.
+   - Tetapkan status akhir: `valid` (dengan poin), `duplicate` (merujuk ID laporan utama), atau `invalid`.
+   - Laporan yang telah berstatus `rewarded` hanya dapat dibuka kembali (*reopen*) oleh Administrator.
+
+---
+
+## 7. Panduan Peserta Singkat
+
+1. **Pendaftaran Akun**:
+   - Wajib menggunakan email resmi kampus berdomain `@ubbg.ac.id`.
+   - Lakukan verifikasi email melalui tautan yang dikirimkan.
+2. **Pembentukan Tim**:
+   - Buat tim baru atau gabung menggunakan kode undangan 8 digit dari ketua tim Anda.
+   - Satu mahasiswa hanya dapat bergabung dalam satu tim.
+3. **Verifikasi NDA**:
+   - Unduh template NDA resmi di menu **Verifikasi Dokumen**.
+   - Tanda tangani di atas materai, unggah pindaian PDF dokumen Anda, dan tunggu persetujuan panitia.
+4. **Pelaporan Temuan**:
+   - Pastikan target berada dalam ruang lingkup (*In-Scope*).
+   - Tuliskan langkah reproduksi secara detail (minimal 100 karakter).
+   - Lampirkan bukti (gambar maksimal 4096px, video MP4/WebM, atau dokumen pendukung non-SVG).
+   - Pantau status temuan Anda pada menu **Daftar Laporan**.
+
+---
+
+## 8. Prosedur Backup & Restore
+
+### A. Prinsip Pemisahan Kunci (`APP_KEY`)
+Seluruh payload kerentanan (`description`, `steps_to_reproduce`, `impact`, `remediation`) tersimpan sebagai ciphertext terenkripsi menggunakan kunci `APP_KEY`.
 
 > [!IMPORTANT]
-> **PERINGATAN KRITIS OPERASIONAL PRODUKSI:**
-> Tanpa adanya proses *queue worker* yang berjalan aktif di latar belakang server, **seluruh email notifikasi kepada peserta dan panitia TIDAK AKAN PERNAH TERKIRIM** (pekerjaan pengiriman email akan terus tertumpuk di tabel antrean database `jobs`).
-> 
-> Di lingkungan pengembangan lokal, antrean dapat disetel langsung memproses dengan `QUEUE_CONNECTION=sync` pada file `.env`. Namun di server produksi dengan driver `database` atau `redis`, Anda **wajib** menjalankan proses daemon *queue worker* secara persisten menggunakan **Supervisor** atau **Systemd**:
-> 
-> ```bash
-> php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-> ```
-> 
-> Contoh konfigurasi **Supervisor** (`/etc/supervisor/conf.d/vulnhunt-worker.conf`):
-> ```ini
-> [program:vulnhunt-worker]
-> process_name=%(program_name)s_%(process_num)02d
-> command=php /var/www/vulnhunt/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
-> autostart=true
-> autorestart=true
-> stopasgroup=true
-> killasgroup=true
-> user=www-data
-> numprocs=2
-> redirect_stderr=true
-> stdout_logfile=/var/www/vulnhunt/storage/logs/worker.log
-> stopwaitsecs=3600
-> ```
+> **ATURAN MUTLAK BACKUP:**
+> Salinan `APP_KEY` **WAJIB DISIMPAN SECARA TERPISAH** dari berkas dump database SQL.
+> Jika file backup database bocor, penyerang tidak akan dapat membaca isi laporan tanpa `APP_KEY`. Sebaliknya, jika server rusak, Anda wajib memiliki salinan `APP_KEY` yang sama untuk merestore data.
 
+### B. Prosedur Pencadangan Harian (Backup Routine)
+```bash
+#!/bin/bash
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_DIR="/var/backups/vulnhunt"
 
----
+# 1. Dump database MySQL
+mysqldump -u vulnhunt_user -p --single-transaction --quick --lock-tables=false lombasaiber > "$BACKUP_DIR/db_$TIMESTAMP.sql"
 
-## 7. Konfigurasi Zona Waktu Tunggal (WIB - Asia/Jakarta)
+# 2. Arsipkan berkas privat storage
+tar -czf "$BACKUP_DIR/storage_private_$TIMESTAMP.tar.gz" -C /var/www/vulnhunt/storage/app/private .
 
-Platform VulnHunt menggunakan konvensi zona waktu tunggal: **WIB (Asia/Jakarta / UTC+7)** di seluruh lapisan sistem (aplikasi, database, CLI, web, dan antrean).
+# 3. Enkripsi berkas backup sebelum dipindahkan ke offsite storage
+gpg --symmetric --cipher-algo AES256 "$BACKUP_DIR/db_$TIMESTAMP.sql"
+gpg --symmetric --cipher-algo AES256 "$BACKUP_DIR/storage_private_$TIMESTAMP.tar.gz"
 
-- Konfigurasi pada .env:
-  `ini
-  APP_TIMEZONE=Asia/Jakarta
-  `
-- Konfigurasi koneksi MySQL (config/database.php):
-  `php
-  'timezone' => '+07:00',
-  `
-- **Penyimpanan Database**: Seluruh kolom waktu (
-eports.submitted_at, nnouncements.published_at, 	eams.created_at, dan konfigurasi competition_settings) disimpan langsung dalam zona waktu WIB murni (Y-m-d H:i:s), tanpa konversi bolak-balik UTC. Hal ini memudahkan query langsung oleh panitia di database dan mencegah kesalahan kalkulasi tenggat waktu lomba.
+# Hapus plaintext lokal
+rm "$BACKUP_DIR/db_$TIMESTAMP.sql" "$BACKUP_DIR/storage_private_$TIMESTAMP.tar.gz"
+```
+
+### C. Prosedur Pemulihan Bencana (Disaster Recovery)
+1. Siapkan server target dengan dependensi PHP dan MySQL yang identik.
+2. Pasang repositori kode dan salin berkas `.env` yang memuat nilai `APP_KEY` asli.
+3. Pulihkan database MySQL:
+   ```bash
+   mysql -u vulnhunt_user -p lombasaiber < db_restored.sql
+   ```
+4. Ekstrak kembali berkas privat ke `storage/app/private`:
+   ```bash
+   tar -xzf storage_private_restored.tar.gz -C /var/www/vulnhunt/storage/app/private/
+   chown -R www-data:www-data /var/www/vulnhunt/storage/app/private
+   ```
+5. Jalankan `php artisan vulnhunt:preflight` untuk memverifikasi integritas sistem pasca pemulihan.
 
 ---
 
-## 8. Akun Demo & Perlindungan Lingkungan Produksi
+## 9. Prosedur Darurat Tanggap Kebocoran / Insiden Keamanan
 
-Untuk mempermudah pengujian di lingkungan lokal dan testing, tersedia DemoAccountsSeeder:
+Jika terjadi indikasi kompromi server atau kebocoran kredensial:
 
-`ash
-# Hanya jalankan di local / testing
-php artisan db:seed --class=DemoAccountsSeeder
-`
+1. **Karantina Akses Publik Seketika**:
+   Aktifkan mode pemeliharaan darurat:
+   ```bash
+   php artisan down --secret="emergency-admin-token-2026" --render="errors.503"
+   ```
+2. **Rotasi Kunci & Pembatalan Sesi Massal**:
+   - Bersihkan seluruh tabel sesi untuk mengeluarkan paksa semua pengguna:
+     ```bash
+     php artisan db:table sessions --truncate
+     ```
+   - Flush seluruh cache dan token otorisasi:
+     ```bash
+     php artisan cache:clear
+     ```
+   - Ganti password basis data MySQL dan perbarui file `.env`.
+3. **Audit Jejak Aktivitas**:
+   Periksa tabel `activity_log` untuk mengidentifikasi akun yang disusupi atau aktivitas tidak wajar:
+   ```bash
+   php artisan tinker --execute="App\Models\Activity::latest()->take(50)->get(['causer_id', 'description', 'created_at']);"
+   ```
+4. **Notifikasi Resmi Sivitas**:
+   Kirimkan pemberitahuan resmi kepada seluruh peserta melalui pengumuman internal kampus dan instruksikan penggantian kata sandi email UBBG.
 
-> [!CAUTION]
-> **PERLINDUNGAN LINGKUNGAN PRODUKSI:**
-> 1. DemoAccountsSeeder **DILARANG KERAS** dan otomatis melempar RuntimeException jika dijalankan pada APP_ENV=production.
-> 2. DatabaseSeeder utama tidak memanggil DemoAccountsSeeder secara default.
-> 3. **Tidak ada kredensial hardcode**: Password akun demo dibaca dari file .env (DEMO_ADMIN_PASSWORD, DEMO_TRIAGER_PASSWORD, DEMO_PARTICIPANT_PASSWORD). Jika variabel tidak diisi, seeder akan membuat password acak 16 karakter yang kuat secara kriptografis (Str::password(16)) dan mencetaknya **satu kali saja** ke tabel konsol CLI.
+---
+
+## 10. Menjalankan Uji Otomatis & Preflight
+
+```bash
+# Jalankan seluruh 152 automated test suite (Pest PHP)
+php artisan test
+
+# Jalankan pengujian konkurensi database nyata (MySQL 10-way parallel test)
+php scripts/test_real_concurrency.php
+
+# Jalankan command preflight produksi komprehensif
+php artisan vulnhunt:preflight
+```

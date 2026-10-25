@@ -33,13 +33,16 @@ class VerificationController extends Controller
         $user = $request->user();
         $team = $user->currentTeam();
         $documentNumber = NdaSubmission::generateDocumentNumber($user->id);
-        $templateVersion = '1.0';
+        $settingsService = app(\App\Services\CompetitionSettings::class);
+        $templateVersion = (string) $settingsService->get('nda_template_version', '1.0');
+        $customText = $settingsService->get('nda_template_text', null);
 
         $pdf = Pdf::loadView('pdf.nda-template', compact(
             'user',
             'team',
             'documentNumber',
-            'templateVersion'
+            'templateVersion',
+            'customText'
         ))->setPaper('a4', 'portrait');
 
         return $pdf->download("Template-NDA-{$user->nim}-{$documentNumber}.pdf");

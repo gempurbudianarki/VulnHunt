@@ -53,10 +53,18 @@ class ReportResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->with(['team', 'scope', 'vulnerabilityType', 'reporter'])
-            ->orderByRaw("CASE status WHEN 'submitted' THEN 1 WHEN 'in_review' THEN 2 WHEN 'needs_info' THEN 3 WHEN 'valid' THEN 4 WHEN 'duplicate' THEN 5 WHEN 'invalid' THEN 6 WHEN 'rewarded' THEN 7 ELSE 8 END")
-            ->orderBy('submitted_at', 'asc');
+            ->orderByRaw("CASE status WHEN 'submitted' THEN 1 WHEN 'in_review' THEN 2 WHEN 'needs_info' THEN 3 WHEN 'valid' THEN 4 WHEN 'duplicate' THEN 5 WHEN 'invalid' THEN 6 WHEN 'rewarded' THEN 7 ELSE 8 END");
+
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+        if ($driver === 'mysql') {
+            $query->orderByRaw("(CASE severity_claimed WHEN 'critical' THEN 40 WHEN 'high' THEN 25 WHEN 'medium' THEN 10 WHEN 'low' THEN 5 ELSE 1 END + (TIMESTAMPDIFF(HOUR, submitted_at, NOW()) * 0.5)) DESC");
+        } else {
+            $query->orderByRaw("(CASE severity_claimed WHEN 'critical' THEN 40 WHEN 'high' THEN 25 WHEN 'medium' THEN 10 WHEN 'low' THEN 5 ELSE 1 END) DESC");
+        }
+
+        return $query->orderBy('submitted_at', 'asc');
     }
 
     public static function table(Table $table): Table
@@ -132,6 +140,20 @@ class ReportResource extends Resource
                     ->alignEnd()
                     ->weight('bold'),
 
+                Tables\Columns\TextColumn::make('triage_priority')
+                    ->label('Prioritas')
+                    ->state(function (Report $record): string {
+                        $weights = ['critical' => 40, 'high' => 25, 'medium' => 10, 'low' => 5, 'info' => 1];
+                        $base = $weights[$record->severity_claimed] ?? 1;
+                        $refTime = $record->updated_at ?? $record->submitted_at;
+                        $hours = $refTime ? max(0, now()->diffInHours($refTime)) : 0;
+                        $priority = $base + ($hours * 0.5);
+                        return number_format($priority, 1);
+                    })
+                    ->badge()
+                    ->color('warning')
+                    ->alignCenter(),
+
                 Tables\Columns\TextColumn::make('submitted_at')
                     ->label('Waktu Masuk')
                     ->dateTime('d M Y H:i')
@@ -167,6 +189,21 @@ class ReportResource extends Resource
                 SelectFilter::make('vulnerability_type_id')
                     ->label('Jenis Kerentanan (CWE)')
                     ->relationship('vulnerabilityType', 'name'),
+
+                SelectFilter::make('team_id')
+                    ->label('Tim (Ekspedisi)')
+                    ->relationship('team', 'name'),
+
+                Tables\Filters\Filter::make('submitted_at')
+                    ->form([
+                        \Filament\Forms\Components\DatePicker::make('submitted_from')->label('Tanggal Masuk Mulai'),
+                        \Filament\Forms\Components\DatePicker::make('submitted_until')->label('Tanggal Masuk Sampai'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when($data['submitted_from'], fn (Builder $query, $date) => $query->whereDate('submitted_at', '>=', $date))
+                            ->when($data['submitted_until'], fn (Builder $query, $date) => $query->whereDate('submitted_at', '<=', $date));
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()->label('Triage'),

@@ -67,5 +67,12 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
+
+        // Reset Password: 3 per menit per kombinasi email & IP
+        RateLimiter::for('password-reset', function (Request $request) {
+            $throttleKey = Str::transliterate(Str::lower($request->input('email', '')).'|'.$request->ip());
+
+            return Limit::perMinute(3)->by($throttleKey);
+        });
     }
 }

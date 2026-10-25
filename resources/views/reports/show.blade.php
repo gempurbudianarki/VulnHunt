@@ -85,10 +85,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        <label for="additional_attachments" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                             Unggah Bukti Tambahan (Maksimal 4 Berkas, 25 MB per Berkas)
                         </label>
-                        <input type="file" name="attachments[]" multiple
+                        <input id="additional_attachments" type="file" name="attachments[]" multiple
                                accept=".png,.jpg,.jpeg,.webp,.mp4,.webm,.pdf,.txt,.md"
                                class="clay-input text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-clay-pill file:border-0 file:text-xs file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-700">
                         @error('attachments')

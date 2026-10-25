@@ -47,7 +47,7 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
 ## 5. Penyimpanan Pengaturan Lomba (`competition_settings`) dengan Cache Bersama
 - **Keputusan**: 
   1. Nilai pengaturan disimpan sebagai JSON valid di kolom `value` (`{"value": ...}`) dengan fallback default terdefinisi di class `App\Services\CompetitionSettings`.
-  2. `CompetitionSettings` wajib menggunakan cache bersama yang persisten antar-proses (driver cache Laravel seperti `file` atau `database`, bukan static array in-memory per-proses).
+  2. `CompetitionSettings` wajib menggunakan cache bersama yang persisten antar-proses (driver cache Laravel seperti `file`, `database`, atau `redis`, bukan static array in-memory per-proses).
   3. Setiap pembaruan pengaturan di Filament otomatis meng-invalidasi cache bersama ini sehingga perubahan langsung terbaca di seluruh worker dan web request.
   4. Form panel pengaturan memvalidasi tipe dan rentang nilai tiap key secara ketat sesuai spesifikasi (kuota 1-50, tim 1-10, bobot non-negatif).
 - **Alasan**: Konsistensi status antar multi-worker dan web request tanpa jeda cache yang salah.
@@ -122,51 +122,46 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
        - Kedua kunci bernilai `null`: Jendela pengiriman laporan berstatus terbuka bebas (unrestricted).
      - Jika waktu saat ini (`now()`) berada sebelum `submission_open_at` atau sesudah `submission_close_at`, pengiriman laporan baru ditolak oleh server dengan pesan validasi error.
 
-
 ---
 
 ## 12. Konvensi Tunggal Zona Waktu WIB (Asia/Jakarta)
 - **Keputusan**: 
   1. Seluruh aplikasi menggunakan konvensi tunggal: **WIB (Asia/Jakarta)** di seluruh lapisan sistem (aplikasi, CLI, web request, Blade, Filament, dan Queue).
-  2. APP_TIMEZONE=Asia/Jakarta pada konfigurasi aplikasi (config/app.php).
-  3. Koneksi MySQL (mysql dan mysql_test pada config/database.php) menggunakan 'timezone' => '+07:00'.
-  4. Semua kolom datetime (
-eports.submitted_at, nnouncements.published_at, 	eams.created_at, dan nilai di tabel competition_settings) disimpan dan dibaca secara konsisten dalam format WIB (Y-m-d H:i:s), tanpa konversi bolak-balik UTC (
-ormalizeValue dan getWib yang memakai UTC dihapus).
-  5. Pengujian jendela pendaftaran dan pengiriman laporan serta transisi mode papan peringkat dievaluasi tepat pada tepi detik menggunakan waktu lokal WIB (
-ow()).
+  2. `APP_TIMEZONE=Asia/Jakarta` pada konfigurasi aplikasi (`config/app.php`).
+  3. Koneksi MySQL (`mysql` dan `mysql_test` pada `config/database.php`) menggunakan `'timezone' => '+07:00'`.
+  4. Semua kolom datetime (`reports.submitted_at`, `announcements.published_at`, `teams.created_at`, dan nilai di tabel `competition_settings`) disimpan dan dibaca secara konsisten dalam format WIB (`Y-m-d H:i:s`), tanpa konversi bolak-balik UTC.
+  5. Pengujian jendela pendaftaran dan pengiriman laporan serta transisi mode papan peringkat dievaluasi tepat pada tepi detik menggunakan waktu lokal WIB (`now()`).
 - **Alasan**: Mencegah kebingungan operasional panitia dan peserta, menghilangkan risiko *off-by-hours* akibat konversi zona waktu parsial, dan memastikan audit trail basis data selaras dengan jam resmi lomba di Indonesia.
-- **Alternatif**: Menyimpan dalam UTC dan konversi saat tampilan (rawan inkonsistensi filter SQL dan query mentah panitia).
 
 ---
 
 ## 13. Sanitasi Markdown Pengumuman (League CommonMark Bawaan Laravel)
 - **Keputusan**: 
-  1. Seluruh sanitasi regex kustom buatan sendiri pada MarkdownSanitizer dihapus dan digantikan secara penuh oleh pustaka resmi **League CommonMark** bawaan Laravel framework melalui facade Illuminate\Support\Str::markdown.
+  1. Seluruh sanitasi regex kustom buatan sendiri pada MarkdownSanitizer dihapus dan digantikan secara penuh oleh pustaka resmi **League CommonMark** bawaan Laravel framework melalui facade `Illuminate\Support\Str::markdown`.
   2. Opsi konfigurasi ditetapkan secara ketat:
-     - 'html_input' => 'strip': Membuang seluruh tag HTML mentah seperti <script>, <img>, <iframe>, <svg>, <object>, <embed> sehingga tidak ada tag HTML yang lolos ke DOM output.
-     - 'allow_unsafe_links' => false: Menetralkan skema URL berbahaya (seperti javascript:, data:, bscript:) pada sintaks tautan markdown inline [text](url), reference link [text][ref], autolink <url>, dan image ![text](url) dengan membuang atribut href atau src.
-  3. Hasil sanitasi diverifikasi secara menyeluruh menggunakan test suite otomatis terhadap berbagai variasi payload XSS, obfuscation case (JaVaScRiPt:), entity encoding (&#106;avascript:), dan attribute event injection.
+     - `'html_input' => 'strip'`: Membuang seluruh tag HTML mentah seperti `<script>`, `<img>`, `<iframe>`, `<svg>`, `<object>`, `<embed>` sehingga tidak ada tag HTML yang lolos ke DOM output.
+     - `'allow_unsafe_links' => false`: Menetralkan skema URL berbahaya (seperti `javascript:`, `data:`, `vbscript:`) pada sintaks tautan markdown inline `[text](url)`, reference link `[text][ref]`, autolink `<url>`, dan image `![text](url)` dengan membuang atribut href atau src.
+  3. Hasil sanitasi diverifikasi secara menyeluruh menggunakan test suite otomatis terhadap berbagai variasi payload XSS, obfuscation case (`JaVaScRiPt:`), entity encoding (`&#106;avascript:`), dan attribute event injection.
 - **Alasan**: Standar keamanan industri melarang regex kustom untuk parsing HTML/Markdown karena rawan bypass parser differential. Pustaka League CommonMark telah teruji luas dan terintegrasi langsung di Laravel.
 
 ---
 
 ## 14. Papan Peringkat Agregat Bebas N+1 & Keamanan Mode Tersembunyi
 - **Keputusan**: 
-  1. Peringkat dihitung menggunakan satu query SQL agregat efisien (SUM(reports.points_awarded), COUNT(reports.id), dll) dengan pengurutan tie-break 4 tingkat:
+  1. Peringkat dihitung menggunakan satu query SQL agregat efisien (`SUM(reports.points_awarded)`, `COUNT(reports.id)`, dll) dengan pengurutan tie-break 4 tingkat:
      - Tingkat 1: Total Poin DESC
      - Tingkat 2: Jumlah Temuan Critical DESC
      - Tingkat 3: Jumlah Temuan High DESC
      - Tingkat 4: Waktu Validasi Terakhir ASC (paling awal menang)
      - Tingkat 5: Team ID ASC (deterministik mutlak)
-  2. Tim berstatus diskualifikasi (	eams.status = 'disqualified') disaring secara mutlak di tingkat query SQL.
+  2. Tim berstatus diskualifikasi (`teams.status = 'disqualified'`) disaring secara mutlak di tingkat query SQL.
   3. Kolom yang disajikan publik ke peserta dibatasi secara ketat: nama tim, total poin, dan jumlah temuan valid (tanpa mengungkap identitas personal anggota tim atau NIM).
   4. Mode visibilitas mendukung 3 kondisi:
-     - isible: Terbuka bebas untuk umum.
-     - hidden: Tertutup penuh untuk umum (hanya Admin yang dapat melihat).
-     - hidden_until_end: Otomatis terbuka tepat pada saat submission_close_at terlewati (jika submission_close_at bernilai null, mode tetap tertutup permanen).
-  5. Saat mode hidden aktif, request JSON / API mengembalikan status 403 Forbidden dengan payload data kosong [], dan tampilan HTML tidak memuat data tabel tersembunyi.
-  6. Cache hasil peringkat (ulnhunt_leaderboard_rankings) disentralisasi pada satu titik invalidasi tunggal: LeaderboardService::invalidateCache(), dipanggil otomatis saat ada mutasi status laporan, perhitungan poin, diskualifikasi tim, atau perubahan pengaturan lomba.
+     - `visible`: Terbuka bebas untuk umum.
+     - `hidden`: Tertutup penuh untuk umum (hanya Admin yang dapat melihat).
+     - `hidden_until_end`: Otomatis terbuka tepat pada saat `submission_close_at` terlewati (jika `submission_close_at` bernilai null, mode tetap tertutup permanen).
+  5. Saat mode hidden aktif, request JSON / API mengembalikan status 403 Forbidden dengan payload data kosong `[]`, dan tampilan HTML tidak memuat data tabel tersembunyi.
+  6. Cache hasil peringkat (`vulnhunt_leaderboard_rankings`) disentralisasi pada satu titik invalidasi tunggal: `LeaderboardService::invalidateCache()`, dipanggil otomatis saat ada mutasi status laporan, perhitungan poin, diskualifikasi tim, atau perubahan pengaturan lomba.
 - **Alasan**: Mencegah kebocoran kompetitif sebelum waktu pengumuman resmi dan menjaga performa tinggi database tanpa beban kalkulasi berulang.
 
 ---
@@ -174,9 +169,9 @@ ow()).
 ## 15. Keamanan Ekspor CSV & Mitigasi Formula Injection (DDE)
 - **Keputusan**: 
   1. Fitur ekspor CSV untuk laporan dan papan peringkat adalah hak akses eksklusif Admin (Triager dan Peserta mendapat respons 403 Forbidden).
-  2. Mitigasi CSV Formula Injection (DDE Attack) diterapkan pada seluruh sel data teks: setiap sel yang diawali karakter formula berbahaya (=, +, -, @, 	, ) otomatis diberi prefix karakter kutip tunggal (').
-  3. Aliran unduhan berkas menggunakan streamDownload Laravel dengan memori efisien ((1)$) untuk mencegah *memory exhaustion* pada ribuan baris data.
-  4. Berkas diawali dengan Byte Order Mark UTF-8 (ï»¿) agar karakter non-ASCII ditampilkan sempurna di Microsoft Excel dan LibreOffice Calc.
+  2. Mitigasi CSV Formula Injection (DDE Attack) diterapkan pada seluruh sel data teks: setiap sel yang diawali karakter formula berbahaya (`=`, `+`, `-`, `@`, `\t`, `\r`) otomatis diberi prefix karakter kutip tunggal (`'`).
+  3. Aliran unduhan berkas menggunakan `streamDownload` Laravel dengan memori efisien (`O(1)`) untuk mencegah *memory exhaustion* pada ribuan baris data.
+  4. Berkas diawali dengan Byte Order Mark UTF-8 (`\xEF\xBB\xBF`) agar karakter non-ASCII ditampilkan sempurna di Microsoft Excel dan LibreOffice Calc.
   5. Setiap unduhan ekspor dicatat ke Spatie Activity Log mencakup nama user pengunduh, IP, waktu, jenis data yang diekspor, dan jumlah baris data.
 - **Alasan**: Melindungi perangkat workstation administrator dari serangan eksekusi perintah arbitrer via spreadsheet aplikasi yang mengolah data laporan kiriman peserta.
 
@@ -184,7 +179,93 @@ ow()).
 
 ## 16. Pengelolaan Pengaturan Lomba & Peniadaan Kredensial Hardcode
 - **Keputusan**: 
-  1. Panel Filament CompetitionSettingResource terhubung langsung ke service singleton CompetitionSettings sebagai single source of truth validasi dan fallback default resmi.
-  2. Seluruh kredensial hardcode dihapus dari repositori. DemoAccountsSeeder membaca password dari variabel lingkungan (DEMO_ADMIN_PASSWORD, DEMO_TRIAGER_PASSWORD, DEMO_PARTICIPANT_PASSWORD) atau menghasilkan password acak kriptografis 16 karakter (Str::password(16)) yang hanya ditampilkan sekali di konsol CLI saat seeder dijalankan.
-  3. DemoAccountsSeeder dilindungi dengan *environment guard*: melempar RuntimeException jika dijalankan di environment production, dan DatabaseSeeder tidak memanggil seeder demo di lingkungan produksi.
+  1. Panel Filament `CompetitionSettingResource` terhubung langsung ke service singleton `CompetitionSettings` sebagai single source of truth validasi dan fallback default resmi.
+  2. Seluruh kredensial hardcode dihapus dari repositori. DemoAccountsSeeder membaca password dari variabel lingkungan (`DEMO_ADMIN_PASSWORD`, `DEMO_TRIAGER_PASSWORD`, `DEMO_PARTICIPANT_PASSWORD`) atau menghasilkan password acak kriptografis 16 karakter (`Str::password(16)`) yang hanya ditampilkan sekali di konsol CLI saat seeder dijalankan.
+  3. DemoAccountsSeeder dilindungi dengan *environment guard*: melempar `RuntimeException` jika dijalankan di environment `production`, dan `DatabaseSeeder` tidak memanggil seeder demo di lingkungan produksi.
 - **Alasan**: Mencegah pembocoran kredensial statis ke repositori Git publik/privat dan menegakkan prinsip pertahanan berlapis (defense-in-depth).
+
+---
+
+## 17. Pengerasan Header Keamanan & CSP Nonce Dinamis (`SecurityHeaders`)
+- **Keputusan**:
+  1. Middleware `SecurityHeaders` dipasang secara global pada grup `web` dan panel Filament `AdminPanelProvider`.
+  2. Menyertakan header standar industri:
+     - `X-Content-Type-Options: nosniff`
+     - `Referrer-Policy: strict-origin-when-cross-origin`
+     - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`
+     - `X-Frame-Options: SAMEORIGIN`
+     - `Strict-Transport-Security: max-age=31536000; includeSubDomains` (hanya diaktifkan pada HTTPS di lingkungan produksi).
+  3. Content Security Policy (CSP) menggunakan kriptografis nonce dinamis per request (`Vite::useCspNonce($nonce)`).
+  4. Pengendalian CSP dimulai dalam mode `Content-Security-Policy-Report-Only` (dikontrol melalui konfigurasi `config('security.csp_report_only')`), dan dapat diubah menjadi `Content-Security-Policy` pemblokiran aktif tanpa mengubah kode.
+- **Alasan**: Memitigasi serangan XSS, Clickjacking, dan MIME confusion tanpa mematahkan pustaka UI modern seperti Alpine.js, Livewire, dan Filament.
+
+---
+
+## 18. Kebijakan Batas Waktu Idle Sesi & Pembatalan Sesi Perangkat Lain
+- **Keputusan**:
+  1. Batas inaktivitas (*idle timeout*) dibedakan secara tegas berdasarkan hak akses:
+     - Staf Panitia (Admin & Triager): **30 menit**.
+     - Peserta Mahasiswa: **120 menit**.
+  2. Sesi diperiksa pada middleware `EnforceSessionIdleTimeout` setelah `StartSession`. Jika waktu idle terlampaui, sesi otomatis dihapus, user di-logout, dan dialihkan ke login dengan pesan informatif.
+  3. Setiap pembaruan kata sandi oleh pengguna (`UpdateUserPassword` dan `SecuritySetupController`) wajib memanggil `Auth::logoutOtherDevices($password)` untuk membatalkan seluruh sesi login di perangkat lain secara seketika.
+- **Alasan**: Mengurangi jendela kerentanan pembajakan sesi pada perangkat panitia yang tertinggal tanpa pengawasan.
+
+---
+
+## 19. Halaman Galat Kustom Bergaya Claymorphism Tanpa Jejak Informasi Internal
+- **Keputusan**:
+  1. Seluruh halaman galat standar (403, 404, 419, 429, 500, 503) diimplementasikan secara terpadu di `resources/views/errors/` menggunakan bahasa desain Claymorphism yang selaras dengan tema platform.
+  2. Pada kondisi `APP_DEBUG=false`, halaman galat tidak memuat jejak stack trace, konfigurasi server, versi PHP, query SQL, maupun informasi sensitif laporan.
+  3. Galat 500 menyajikan kode insiden unik dan mengarahkan pengguna melapor ke panitia tanpa membocorkan rincian teknis backend.
+- **Alasan**: Mencegah kebocoran informasi internal (*information disclosure*) kepada aktor jahat.
+
+---
+
+## 20. Perlindungan Akses Langsung Berkas Privat Storage (HTTP 404)
+- **Keputusan**:
+  1. Seluruh berkas bukti eksploitasi dan formulir pendaftaran NDA disimpan pada disk `private` (`storage/app/private`), BUKAN di `storage/app/public`.
+  2. Symlink `public/storage` hanya mengarah ke `storage/app/public` (hanya untuk asset publik yang diizinkan).
+  3. Akses HTTP langsung ke URL `/storage/private/*` atau upaya path traversal mengembalikan respons HTTP 404 Not Found.
+  4. Pengunduhan berkas privat wajib melalui rute controller terautentikasi (`reports.attachment.download` dan `verification.download`) yang memverifikasi izin tim dan pencatatan audit log staf.
+- **Alasan**: Mencegah akses tidak terotorisasi terhadap temuan kerentanan kritis kampus.
+
+---
+
+## 21. Pemeriksaan Kesiapan Produksi Otomatis (`php artisan vulnhunt:preflight`)
+- **Keputusan**:
+  1. Dibuat perintah CLI bawaan `php artisan vulnhunt:preflight` yang memverifikasi 12 kriteria keamanan dan operasional sebelum platform dideploy ke publik:
+     - `APP_DEBUG` bernilai false.
+     - `APP_ENV` bernilai `production`.
+     - `APP_URL` menggunakan protokol `https://`.
+     - Tidak ada akun demo atau email pengujian pada basis data.
+     - Seluruh akun staf telah mengganti kata sandi bawaan (`must_change_password = false`).
+     - `MAIL_MAILER` bukan `log`.
+     - `QUEUE_CONNECTION` bukan `sync`.
+     - `CACHE_STORE` bukan `array`.
+     - `APP_KEY` terisi dan valid.
+     - `SESSION_SECURE_COOKIE` bernilai `true`.
+     - Berkas privat di `storage/app/private` tidak dapat diakses lewat symlink `public/storage`.
+     - Mode CSP telah dinaikkan dari Report-Only ke Active Enforcement (`CSP_REPORT_ONLY=false`).
+  2. Perintah mengembalikan kode keluar **0** jika seluruh 12 kriteria lulus, dan **1** jika ada kriteria yang gagal.
+- **Alasan**: Menghilangkan kelalaian konfigurasi (*human error*) saat peralihan dari lingkungan staging ke produksi.
+
+---
+
+## 22. Pencegahan N+1 Query Melalui `Model::preventLazyLoading(! app()->isProduction())`
+- **Keputusan**:
+  1. Diaktifkan `Model::preventLazyLoading(! app()->isProduction())` pada `AppServiceProvider::boot()`.
+  2. Seluruh kueri pada portal peserta, controller, kueri peringkat, kalkulator diminishing returns, dan panel Filament dipastikan menggunakan eager loading (`with(...)`) untuk semua relasi.
+  3. Pelanggaran lazy loading langsung melempar `LazyLoadingViolationException` pada tahap pengembangan dan automated test, sehingga masalah performa terdeteksi dini sebelum menyentuh produksi.
+- **Alasan**: Menjamin skalabilitas sistem dan kecepatan respon saat ratusan peserta mengakses portal secara bersamaan.
+
+---
+
+## 23. Kebijakan CSP (Content-Security-Policy), Evaluasi Alpine.js, Livewire & Filament
+- **Keputusan**:
+  1. Halaman publik (`/`, `/login`), portal peserta (`/app/*`), dan panel admin (`/admin/*`) dilindungi dengan middleware `SecurityHeaders`.
+  2. Implementasi menyertakan cryptographic nonce dinamis per request (`'nonce-...'`) yang diinjeksikan ke `<script>` via `Vite::useCspNonce()`.
+  3. Direktif `script-src` menyertakan `'unsafe-eval'` untuk panel admin karena Filament v3 dan Livewire v3 secara fundamental membutuhkan evaluasi runtime JavaScript untuk hidrasi state komponen dan evaluasi ekspresi wire.
+  4. Pengujian browser aktual dengan mode CSP Enforce membuktikan bahwa evaluasi inline event handler (`@click`, `x-on`) dan dynamic execution di Alpine/Livewire memicu pelanggaran konsol browser (`Refused to evaluate a string as JavaScript because 'unsafe-eval' is not an allowed source of script in the following Content Security Policy directive`).
+  5. Oleh karena itu, kebijakan CSP dijalankan dalam mode terdokumentasi dengan perlindungan nonce ketat untuk script eksternal, dan mode *enforce* aktif di produksi tidak diaktifkan sebelum terbukti tidak merusak fungsionalitas interaktif halaman.
+- **Alasan**: Mencegah pemblokiran fungsionalitas inti aplikasi (form submission, interactive CVSS calculator, triage actions di Filament) oleh browser pengguna.
+

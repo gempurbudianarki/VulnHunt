@@ -454,3 +454,134 @@ test('mysql invarian opsi B: balasan needs_info tim tetap sukses saat kuota akti
     expect($needsInfo->fresh()->status)->toBe('in_review')
         ->and(Report::on('mysql_test')->where('team_id', $team->id)->whereIn('status', ['submitted', 'triaged', 'in_review'])->count())->toBe(3);
 });
+
+test('10 request submit laporan bersamaan ke MySQL dengan kuota 5 (tidak boleh melebihi kuota)', function () {
+    $settings = app(CompetitionSettings::class);
+    $settings->set('max_active_reports_per_team', 5);
+
+    $leader = User::on('mysql_test')->create([
+        'name' => 'Leader Concurrency 10 Suite',
+        'email' => 'leader10_suite@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+        'rules_accepted_version' => (string) $settings->get('rules_version', '1'),
+    ]);
+
+    $team = Team::on('mysql_test')->create([
+        'name' => 'Tim Kuota 5 Suite',
+        'slug' => 'tim-kuota-5-suite',
+        'invite_code' => 'KUOTA10S',
+        'leader_id' => $leader->id,
+        'status' => 'active',
+    ]);
+
+    TeamMember::on('mysql_test')->create([
+        'team_id' => $team->id,
+        'user_id' => $leader->id,
+        'role' => 'leader',
+        'joined_at' => now(),
+    ]);
+
+    $scope = Scope::on('mysql_test')->create([
+        'name' => 'Target Concurrency Suite',
+        'target' => 'https://race-suite.ubbg.ac.id',
+        'scope_status' => 'in_scope',
+        'is_active' => true,
+    ]);
+
+    $cwe = VulnerabilityType::on('mysql_test')->create([
+        'cwe_id' => 'CWE-89',
+        'name' => 'SQL Injection Concurrency Suite',
+        'is_active' => true,
+    ]);
+
+    $basePath = base_path();
+    $poolResults = Process::pool(function ($pool) use ($basePath, $leader, $scope, $cwe) {
+        for ($i = 1; $i <= 10; $i++) {
+            $cmd = "php artisan --env=testing app:concurrent-report {$leader->id} {$scope->id} {$cwe->id} \"Laporan Paralel Suite #{$i}\" --database=mysql_test";
+            $pool->as("sub_{$i}")->path($basePath)->command($cmd);
+        }
+    })->wait();
+
+    $successCount = 0;
+    $failedCount = 0;
+    for ($i = 1; $i <= 10; $i++) {
+        $out = $poolResults["sub_{$i}"]->output();
+        if (str_contains($out, 'SUCCESS')) {
+            $successCount++;
+        } else {
+            $failedCount++;
+        }
+    }
+
+    expect($successCount)->toBe(5)
+        ->and($failedCount)->toBe(5);
+
+    $finalActiveReports = Report::on('mysql_test')->where('team_id', $team->id)->whereIn('status', ['submitted', 'in_review', 'triaged'])->count();
+    expect($finalActiveReports)->toBe(5);
+});
+
+test('10 request gabung tim bersamaan ke MySQL untuk slot terakhir (tepat 1 yang berhasil)', function () {
+    $settings = app(CompetitionSettings::class);
+    $settings->set('max_team_size', 2);
+
+    $leader = User::on('mysql_test')->create([
+        'name' => 'Leader Slot 10 Suite',
+        'email' => 'leader_slot_10@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+    ]);
+
+    $team = Team::on('mysql_test')->create([
+        'name' => 'Tim Slot 10 Suite',
+        'slug' => 'tim-slot-10-suite',
+        'invite_code' => 'SLOT10ST',
+        'leader_id' => $leader->id,
+        'status' => 'active',
+    ]);
+
+    TeamMember::on('mysql_test')->create([
+        'team_id' => $team->id,
+        'user_id' => $leader->id,
+        'role' => 'leader',
+        'joined_at' => now(),
+    ]);
+
+    $candidates = [];
+    for ($i = 1; $i <= 10; $i++) {
+        $candidates[$i] = User::on('mysql_test')->create([
+            'name' => "Calon Suite #{$i}",
+            'email' => "calon_suite_{$i}@ubbg.ac.id",
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+            'rules_accepted_version' => '1',
+        ]);
+    }
+
+    $basePath = base_path();
+    $poolResults = Process::pool(function ($pool) use ($basePath, $team, $candidates) {
+        for ($i = 1; $i <= 10; $i++) {
+            $cId = $candidates[$i]->id;
+            $cmd = "php artisan --env=testing app:concurrent-join {$team->invite_code} {$cId} --database=mysql_test";
+            $pool->as("join_{$i}")->path($basePath)->command($cmd);
+        }
+    })->wait();
+
+    $successCount = 0;
+    $failedCount = 0;
+    for ($i = 1; $i <= 10; $i++) {
+        $out = $poolResults["join_{$i}"]->output();
+        if (str_contains($out, 'SUCCESS')) {
+            $successCount++;
+        } else {
+            $failedCount++;
+        }
+    }
+
+    expect($successCount)->toBe(1)
+        ->and($failedCount)->toBe(9);
+
+    $finalMembers = TeamMember::on('mysql_test')->where('team_id', $team->id)->count();
+    expect($finalMembers)->toBe(2);
+});
+

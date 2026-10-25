@@ -45,6 +45,8 @@ class CompetitionSettings
         ],
         'triage_age_factor' => 0.5,
         'rules_version' => '1',
+        'nda_template_version' => '1.0',
+        'nda_template_text' => null,
         'allowed_email_domains' => ['ubbg.ac.id'],
         'registration_rate_limit_per_hour' => 60,
         'report_rate_limit_per_hour' => 10,
@@ -282,8 +284,15 @@ class CompetitionSettings
                 break;
 
             case 'rules_version':
+            case 'nda_template_version':
                 if (empty($value) || (! is_string($value) && ! is_numeric($value))) {
-                    throw new InvalidArgumentException('Versi aturan (rules_version) harus berupa teks atau angka non-kosong.');
+                    throw new InvalidArgumentException("Versi ({$key}) harus berupa teks atau angka non-kosong.");
+                }
+                break;
+
+            case 'nda_template_text':
+                if ($value !== null && ! is_string($value)) {
+                    throw new InvalidArgumentException('Teks template NDA harus berupa teks string atau null.');
                 }
                 break;
 

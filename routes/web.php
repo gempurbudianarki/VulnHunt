@@ -27,6 +27,11 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware(['guest:'.config('fortify.guard'), 'throttle:register'])
     ->name('register.store');
 
+// Override Fortify password.email with throttle:password-reset (3 per menit per email|IP)
+Route::post('/forgot-password', [\Laravel\Fortify\Http\Controllers\PasswordResetLinkController::class, 'store'])
+    ->middleware(['guest:'.config('fortify.guard'), 'throttle:password-reset'])
+    ->name('password.email');
+
 // Inisialisasi Keamanan Staf (Wajib ganti password & 2FA pada login pertama)
 Route::middleware(['auth'])->group(function () {
     Route::get('/keamanan/setup', [SecuritySetupController::class, 'show'])->name('security.setup');

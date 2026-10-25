@@ -24,7 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
         ]);
 
+        $middleware->authenticateSessions();
+
         $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\EnforceSessionIdleTimeout::class,
             EnsureStaffSecuritySetup::class,
         ]);
     })

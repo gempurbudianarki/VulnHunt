@@ -17,29 +17,35 @@ class DemoAccountsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (app()->environment('production')) {
-            throw new \RuntimeException('DemoAccountsSeeder DILARANG dijalankan pada environment production!');
+        if (! in_array(app()->environment(), ['local', 'testing'], true)) {
+            throw new \RuntimeException('DemoAccountsSeeder HANYA diizinkan pada environment local dan testing!');
         }
 
+        $twoFactorProvider = app(\Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider::class);
+
+        $adminEmail = env('DEMO_ADMIN_EMAIL', 'admin.demo@ubbg.ac.id');
         $adminPassword = env('DEMO_ADMIN_PASSWORD') ?: \Illuminate\Support\Str::password(16);
+        $adminTotpSecret = $twoFactorProvider->generateSecretKey();
+        $adminRecoveryCodes = \Illuminate\Support\Collection::times(8, fn () => \Laravel\Fortify\RecoveryCode::generate())->all();
+
+        $triagerEmail = env('DEMO_TRIAGER_EMAIL', 'triager.demo@ubbg.ac.id');
         $triagerPassword = env('DEMO_TRIAGER_PASSWORD') ?: \Illuminate\Support\Str::password(16);
+        $triagerTotpSecret = $twoFactorProvider->generateSecretKey();
+        $triagerRecoveryCodes = \Illuminate\Support\Collection::times(8, fn () => \Laravel\Fortify\RecoveryCode::generate())->all();
+
+        $pesertaEmail = env('DEMO_PARTICIPANT_EMAIL', 'peserta@ubbg.ac.id');
         $pesertaPassword = env('DEMO_PARTICIPANT_PASSWORD') ?: \Illuminate\Support\Str::password(16);
 
-        // 1. Akun Admin Demo (Langsung Siap Pakai 2FA dengan Recovery Code & Secret Standar)
+        // 1. Akun Admin Demo (Siap Pakai dengan TOTP Secret Acak & Recovery Code)
         $admin = User::updateOrCreate(
-            ['email' => 'admin.demo@ubbg.ac.id'],
+            ['email' => $adminEmail],
             [
                 'name' => 'Admin Utama (Demo)',
                 'password' => Hash::make($adminPassword),
                 'must_change_password' => false,
                 'email_verified_at' => now(),
-                'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
-                'two_factor_recovery_codes' => encrypt(json_encode([
-                    '11111111-22222222',
-                    '33333333-44444444',
-                    '55555555-66666666',
-                    '77777777-88888888',
-                ])),
+                'two_factor_secret' => encrypt($adminTotpSecret),
+                'two_factor_recovery_codes' => encrypt(json_encode($adminRecoveryCodes)),
                 'two_factor_confirmed_at' => now(),
                 'rules_accepted_version' => '1',
                 'rules_accepted_at' => now(),
@@ -51,19 +57,16 @@ class DemoAccountsSeeder extends Seeder
             $admin->assignRole('admin');
         }
 
-        // 2. Akun Triager Demo (Siap Pakai untuk Uji Akses Triager di /admin)
+        // 2. Akun Triager Demo (Siap Pakai dengan TOTP Secret Acak & Recovery Code)
         $triager = User::updateOrCreate(
-            ['email' => 'triager.demo@ubbg.ac.id'],
+            ['email' => $triagerEmail],
             [
                 'name' => 'Triager Panitia (Demo)',
                 'password' => Hash::make($triagerPassword),
                 'must_change_password' => false,
                 'email_verified_at' => now(),
-                'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
-                'two_factor_recovery_codes' => encrypt(json_encode([
-                    '11111111-22222222',
-                    '33333333-44444444',
-                ])),
+                'two_factor_secret' => encrypt($triagerTotpSecret),
+                'two_factor_recovery_codes' => encrypt(json_encode($triagerRecoveryCodes)),
                 'two_factor_confirmed_at' => now(),
                 'rules_accepted_version' => '1',
                 'rules_accepted_at' => now(),
@@ -77,7 +80,7 @@ class DemoAccountsSeeder extends Seeder
 
         // 3. Akun Peserta Demo (Approved Penuh: Siap Akses /app, Scope, & Laporan)
         $peserta = User::updateOrCreate(
-            ['email' => 'peserta@ubbg.ac.id'],
+            ['email' => $pesertaEmail],
             [
                 'name' => 'Fulan Mahasiswa (Peserta)',
                 'nim' => '20260001',
@@ -99,12 +102,13 @@ class DemoAccountsSeeder extends Seeder
 
         if ($this->command) {
             $this->command->info('=== KREDENSIAL AKUN DEMO (LOCAL / TESTING ONLY) ===');
+            $this->command->warn('PENTING: Kredensial & TOTP Secret hanya ditampilkan sekali pada eksekusi konsol ini.');
             $this->command->table(
-                ['Peran', 'Email', 'Password', 'Catatan 2FA'],
+                ['Peran', 'Email', 'Password Masked / Raw', 'TOTP Secret (Dibuat Acak)', 'Recovery Code [0]'],
                 [
-                    ['Admin', 'admin.demo@ubbg.ac.id', $adminPassword, 'Secret: JBSWY3DPEHPK3PXP / Recovery Code'],
-                    ['Triager', 'triager.demo@ubbg.ac.id', $triagerPassword, 'Secret: JBSWY3DPEHPK3PXP / Recovery Code'],
-                    ['Peserta', 'peserta@ubbg.ac.id', $pesertaPassword, 'Non-2FA (Tim: GARUDA01)'],
+                    ['Admin', $adminEmail, $adminPassword, $adminTotpSecret, $adminRecoveryCodes[0] ?? '-'],
+                    ['Triager', $triagerEmail, $triagerPassword, $triagerTotpSecret, $triagerRecoveryCodes[0] ?? '-'],
+                    ['Peserta', $pesertaEmail, $pesertaPassword, 'Non-2FA', '-'],
                 ]
             );
         }

@@ -189,7 +189,7 @@ test('DemoAccountsSeeder melempar RuntimeException pada environment production d
 
     try {
         expect(fn () => (new \Database\Seeders\DemoAccountsSeeder)->run())
-            ->toThrow(\RuntimeException::class, 'DemoAccountsSeeder DILARANG dijalankan pada environment production!');
+            ->toThrow(\RuntimeException::class, 'DemoAccountsSeeder HANYA diizinkan pada environment local dan testing!');
     } finally {
         app()->detectEnvironment(fn () => 'testing');
     }

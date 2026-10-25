@@ -31,5 +31,9 @@ class UpdateUserPassword implements UpdatesUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::id() === $user->id) {
+            \Illuminate\Support\Facades\Auth::logoutOtherDevices($input['password']);
+        }
     }
 }

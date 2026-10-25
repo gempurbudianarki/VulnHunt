@@ -80,6 +80,8 @@ class SecuritySetupController extends Controller
             'two_factor_confirmed_at' => now(),
         ])->save();
 
+        \Illuminate\Support\Facades\Auth::logoutOtherDevices($request->password);
+
         return redirect('/admin')->with('status', 'Keamanan akun berhasil dikonfigurasi. Selamat datang di Panel Admin!');
     }
 }

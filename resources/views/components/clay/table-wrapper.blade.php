@@ -8,10 +8,10 @@
         <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
             <div>
                 @if($title)
-                    <h3 class="text-sm font-bold text-slate-900 tracking-tight">{{ $title }}</h3>
+                    <h2 class="text-sm font-bold text-slate-900 tracking-tight">{{ $title }}</h2>
                 @endif
                 @if($subtitle)
-                    <p class="text-xs text-slate-500 mt-0.5">{{ $subtitle }}</p>
+                    <p class="text-xs text-slate-600 mt-0.5">{{ $subtitle }}</p>
                 @endif
             </div>
             @if(isset($actions))

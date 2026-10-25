@@ -18,3 +18,14 @@ yarn-error.log
 /.idea
 /.vscode
 .agents/
+
+# Generated and audit files
+/docs/test-output.txt
+/docs/test-*.txt
+/docs/lighthouse/*.json
+/scripts/raw_select_timezone.php
+/scripts/simulate_preflight.php
+/scripts/audit_csp_enforce_browser.mjs
+/storage/test_*.txt
+*.tmp
+

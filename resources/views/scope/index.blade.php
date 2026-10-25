@@ -7,7 +7,7 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
                 Target Aset & Scope Pengujian
             </h1>
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-xs text-slate-600 mt-1">
                 Daftar target yang diperbolehkan (In-Scope) dan target yang dilarang keras diuji (Out-of-Scope).
             </p>
         </div>
@@ -15,7 +15,7 @@
         <!-- In Scope -->
         <x-clay.table-wrapper title="Target Diizinkan (In-Scope)" subtitle="Aset resmi yang sah untuk diteliti keamanannya.">
             <thead>
-                <tr class="border-b border-slate-100 text-slate-500 font-mono text-[11px] uppercase bg-slate-50/50">
+                <tr class="border-b border-slate-100 text-slate-600 font-mono text-[11px] uppercase bg-slate-50/50">
                     <th class="py-3 px-4 font-bold">Nama Target</th>
                     <th class="py-3 px-4 font-bold">Domain / URL Target</th>
                     <th class="py-3 px-4 font-bold">Tipe Aset</th>
