@@ -91,7 +91,7 @@ class VerificationController extends Controller
         Storage::disk('private')->makeDirectory('nda');
         $fullDestinationPath = Storage::disk('private')->path($relativeDiskPath);
 
-        // 2. Pemrosesan jika berupa Gambar: Batasi dimensi piksel & strip EXIF
+        // 2. Pemrosesan jika berupa Gambar: Batasi dimensi piksel, auto-resize & strip EXIF
         if (in_array($extension, ['jpg', 'png'], true)) {
             $imageInfo = @getimagesize($tempPath);
             if (! $imageInfo) {
@@ -101,16 +101,17 @@ class VerificationController extends Controller
             }
 
             [$width, $height] = $imageInfo;
-            // Batasi dimensi piksel maksimal 4000x4000
-            if ($width > 4000 || $height > 4000) {
+            // Batasi dimensi piksel maksimal 6000x6000 piksel sebelum didecode
+            if ($width > 6000 || $height > 6000) {
                 throw ValidationException::withMessages([
-                    'signed_file' => ['Dimensi gambar terlalu besar (maksimal 4000x4000 piksel).'],
+                    'signed_file' => ["Dimensi gambar terlalu besar (maksimal 6000x6000 piksel, dimensi berkas Anda: {$width}x{$height} piksel)."],
                 ]);
             }
 
-            // Strip EXIF metadata menggunakan Intervention Image
+            // Strip EXIF metadata dan resize otomatis bila melebihi 2500x2500 piksel
             $manager = new ImageManager(new Driver);
             $image = $manager->read($tempPath);
+            $image->scaleDown(2500, 2500);
             $image->save($fullDestinationPath);
         } else {
             // Berkas PDF disimpan langsung ke storage privat

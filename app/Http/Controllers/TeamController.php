@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\User;
 use App\Services\CompetitionSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -127,7 +128,7 @@ class TeamController extends Controller
     public function leave(Request $request)
     {
         $user = $request->user();
-        $membership = $user->teamMember;
+        $membership = TeamMember::where('user_id', $user->id)->first();
 
         if (! $membership) {
             return back()->with('error', 'Anda tidak terdaftar dalam tim mana pun.');
@@ -141,7 +142,7 @@ class TeamController extends Controller
         }
 
         if ($membership->isLeader() && $team->members()->count() > 1) {
-            return back()->with('error', 'Sebagai ketua tim, Anda harus menyerahkan kepemimpinan sebelum keluar atau membubarkan tim.');
+            return back()->with('error', 'Sebagai ketua tim, Anda tidak bisa keluar sebelum menunjuk ketua baru.');
         }
 
         DB::transaction(function () use ($membership, $team) {
@@ -154,6 +155,58 @@ class TeamController extends Controller
 
         return redirect()->route('teams.index')
             ->with('success', 'Anda telah berhasil keluar dari tim.');
+    }
+
+    public function transferLeadership(Request $request)
+    {
+        $caller = $request->user();
+        $callerMembership = TeamMember::where('user_id', $caller->id)->first();
+
+        if (! $callerMembership || ! $callerMembership->isLeader()) {
+            return back()->with('error', 'Hanya ketua tim yang berhak mengalihkan kepemimpinan.');
+        }
+
+        $validated = $request->validate([
+            'new_leader_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $team = $callerMembership->team;
+        $newLeader = User::findOrFail($validated['new_leader_id']);
+
+        if ($newLeader->id === $caller->id) {
+            return back()->with('error', 'Anda sudah menjadi ketua tim.');
+        }
+
+        try {
+            $team->reassignLeader($newLeader);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('teams.index')
+            ->with('success', "Kepemimpinan tim berhasil dialihkan kepada {$newLeader->name}.");
+    }
+
+    public function adminReassignLeader(Request $request, Team $team)
+    {
+        $caller = $request->user();
+        if (! $caller->hasRole('admin')) {
+            abort(403, 'Hanya admin yang berhak memindahkan ketua tim.');
+        }
+
+        $validated = $request->validate([
+            'new_leader_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $newLeader = User::findOrFail($validated['new_leader_id']);
+
+        try {
+            $team->reassignLeader($newLeader);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Ketua tim {$team->name} berhasil dipindahkan oleh admin menjadi {$newLeader->name}.");
     }
 
     public function removeMember(Request $request, int $userId)

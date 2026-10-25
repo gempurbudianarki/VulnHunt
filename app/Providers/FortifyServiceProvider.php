@@ -56,6 +56,11 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perHour(10)->by($request->ip());
         });
 
+        // Gabung Tim: 10 per menit per pengguna
+        RateLimiter::for('join-team', function (Request $request) {
+            return Limit::perMinute(10)->by((string) ($request->user()?->id ?: $request->ip()));
+        });
+
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });

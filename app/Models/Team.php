@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Team extends Model
@@ -127,5 +128,28 @@ class Team extends Model
     public function isDisqualified(): bool
     {
         return $this->status === 'disqualified';
+    }
+
+    /**
+     * Memindahkan kepemimpinan tim ke anggota lain
+     */
+    public function reassignLeader(User $newLeader): void
+    {
+        DB::transaction(function () use ($newLeader) {
+            $membership = TeamMember::where('team_id', $this->id)
+                ->where('user_id', $newLeader->id)
+                ->first();
+
+            if (! $membership) {
+                throw new \InvalidArgumentException('Pengguna tersebut bukan anggota dari tim ini.');
+            }
+
+            TeamMember::where('team_id', $this->id)
+                ->where('role', 'leader')
+                ->update(['role' => 'member']);
+
+            $membership->update(['role' => 'leader']);
+            $this->update(['leader_id' => $newLeader->id]);
+        });
     }
 }

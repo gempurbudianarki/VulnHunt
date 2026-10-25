@@ -34,13 +34,13 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
 
 ## 4. Perlindungan Upload File, Pelarangan SVG, & Batasan Dimensi Gambar
 - **Keputusan**: 
-  1. Bukti eksploitasi hanya menerima MIME type aman: gambar (`png, jpg, jpeg, webp`), video (`mp4, webm`), dokumen teks (`pdf, txt, md`). Format SVG ditolak secara mutlak meskipun berstatus gambar.
-  2. File gambar bukti wajib divalidasi batas dimensi pikselnya (maksimal 4000x4000 piksel) sebelum diproses, untuk mencegah serangan *decompression bomb / pixel flood DoS*.
-  3. Semua gambar bukti diproses ulang menggunakan `intervention/image` untuk membuang seluruh metadata EXIF dan GPS.
-  4. Hash SHA-256 berkas dihitung dari berkas akhir hasil olahan (setelah EXIF dibuang) dan dicatat di `report_attachments.sha256`.
+  1. Bukti eksploitasi dan dokumen NDA hanya menerima MIME type aman: gambar (`png, jpg, jpeg, webp`), video (`mp4, webm`), dokumen teks (`pdf, txt, md`). Format SVG ditolak secara mutlak meskipun berstatus gambar.
+  2. Batas dimensi gambar diperluas hingga maksimal 6000x6000 piksel dengan pemeriksaan `getimagesize()` sebelum *decode* ke memori. Jika melebihi batas 6000 piksel, sistem mengembalikan pesan error yang jelas berisi dimensi berkas asli vs batas maksimal untuk mencegah serangan *decompression bomb / pixel flood DoS*.
+  3. Berkas gambar yang lolos verifikasi dimensi diproses otomatis dengan `scaleDown(2500, 2500)` via Intervention Image untuk mereduksi beban memori dan storage tanpa mengurangi keterbacaan tanda tangan fisik, serta membuang seluruh metadata EXIF dan GPS.
+  4. Hash SHA-256 berkas dihitung dari berkas akhir hasil olahan (setelah resize dan EXIF dibuang) dan dicatat di `report_attachments.sha256` atau `nda_submissions.signed_file_sha256`.
   5. Seluruh unduhan berkas lampiran (termasuk `.txt`, `.md`, dan `.pdf`) **selalu** dikirim dengan header HTTP `Content-Disposition: attachment; filename="..."` dan `X-Content-Type-Options: nosniff`. Berkas **tidak pernah** disajikan secara `inline` di browser.
-- **Alasan**: File SVG dan file teks/PDF inline dapat memicu Stored XSS di browser panitia atau peserta. Dimensi raksasa dapat menguras memori server.
-- **Alternatif**: Mengizinkan SVG dengan sanitasi XML atau menyajikan PDF secara inline.
+- **Alasan**: File SVG dan file teks/PDF inline dapat memicu Stored XSS di browser panitia atau peserta. Dimensi raksasa dapat menguras memori server jika didecode langsung tanpa pengecekan dimensi awal.
+- **Alternatif**: Mengizinkan SVG dengan sanitasi XML, menyajikan PDF secara inline, atau decode gambar tanpa limit dimensi.
 
 ---
 

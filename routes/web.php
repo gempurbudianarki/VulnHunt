@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\Auth\SecuritySetupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ReportController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\ScopeController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +21,17 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Override Fortify register.store with throttle:register (10 per hour per IP)
+Route::post('/register', [RegisteredUserController::class, 'store'])
+    ->middleware(['guest:'.config('fortify.guard'), 'throttle:register'])
+    ->name('register.store');
+
+// Inisialisasi Keamanan Staf (Wajib ganti password & 2FA pada login pertama)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/keamanan/setup', [SecuritySetupController::class, 'show'])->name('security.setup');
+    Route::post('/keamanan/setup', [SecuritySetupController::class, 'save'])->name('security.setup.save');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +47,10 @@ Route::middleware(['auth', 'verified'])->prefix('app')->group(function () {
     Route::prefix('tim')->name('teams.')->group(function () {
         Route::get('/', [TeamController::class, 'index'])->name('index');
         Route::post('/', [TeamController::class, 'store'])->name('store');
-        Route::post('/gabung', [TeamController::class, 'join'])->name('join');
+        Route::post('/gabung', [TeamController::class, 'join'])->middleware('throttle:join-team')->name('join');
         Route::post('/keluar', [TeamController::class, 'leave'])->name('leave');
+        Route::post('/transfer-ketua', [TeamController::class, 'transferLeadership'])->name('transfer-leadership');
+        Route::post('/{team}/admin-pindah-ketua', [TeamController::class, 'adminReassignLeader'])->name('admin-reassign-leader');
         Route::delete('/anggota/{id}', [TeamController::class, 'removeMember'])->name('remove-member');
         Route::post('/regenerate-kode', [TeamController::class, 'regenerateInviteCode'])->name('regenerate-code');
     });

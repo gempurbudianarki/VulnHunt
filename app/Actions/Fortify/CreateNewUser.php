@@ -51,14 +51,28 @@ class CreateNewUser implements CreatesNewUsers
                 function ($attribute, $value, $fail) use ($settings) {
                     $allowedDomains = $settings->get('allowed_email_domains');
                     if (! empty($allowedDomains) && is_array($allowedDomains)) {
+                        $emailParts = explode('@', (string) $value);
+                        if (count($emailParts) !== 2) {
+                            $fail('Format email tidak valid.');
+
+                            return;
+                        }
+
+                        $emailDomain = strtolower($emailParts[1]);
                         $matched = false;
+
                         foreach ($allowedDomains as $domain) {
-                            $domain = trim(ltrim($domain, '@'));
-                            if (! empty($domain) && (Str::endsWith($value, "@{$domain}") || Str::endsWith($value, ".{$domain}"))) {
+                            $domain = strtolower(trim(ltrim($domain, '@.')));
+                            if ($domain === '') {
+                                continue;
+                            }
+                            // Cocok persis atau subdomain (misal mhs.ubbg.ac.id)
+                            if ($emailDomain === $domain || Str::endsWith($emailDomain, ".{$domain}")) {
                                 $matched = true;
                                 break;
                             }
                         }
+
                         if (! $matched) {
                             $fail('Email harus menggunakan alamat email resmi kampus ('.implode(', ', $allowedDomains).').');
                         }

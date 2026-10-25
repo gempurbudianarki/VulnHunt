@@ -188,6 +188,12 @@ class CompetitionSettings
                     throw new InvalidArgumentException('Mode papan peringkat tidak valid.');
                 }
                 break;
+
+            case 'allowed_email_domains':
+                if (! is_array($value)) {
+                    throw new InvalidArgumentException('Daftar domain email harus berupa array.');
+                }
+                break;
         }
     }
 

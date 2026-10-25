@@ -32,6 +32,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'study_program',
         'cohort_year',
         'password',
+        'must_change_password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
         'rules_accepted_version',
         'rules_accepted_at',
         'rules_accepted_ip',
@@ -60,15 +64,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'rules_accepted_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
             'cohort_year' => 'integer',
         ];
     }
 
     /**
      * Filament Panel access gate.
-     * Only admin and triager can access, and they must have 2FA enabled in production.
+     * Only admin and triager can access, and they must have 2FA enabled in all environments.
      */
     public function canAccessPanel(Panel $panel): bool
     {
@@ -80,8 +86,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return false;
         }
 
-        // Admin & triager wajib 2FA sebelum akses panel
-        if (app()->isProduction() && ! $this->hasEnabledTwoFactorAuthentication()) {
+        // Admin & triager wajib 2FA TOTP sebelum panel bisa dipakai (berlaku juga di lingkungan local)
+        if (! $this->hasEnabledTwoFactorAuthentication()) {
+            return false;
+        }
+
+        // Wajib ganti password pada login pertama jika ditandai
+        if ($this->must_change_password) {
             return false;
         }
 
