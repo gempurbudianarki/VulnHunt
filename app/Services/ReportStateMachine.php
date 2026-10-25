@@ -226,6 +226,9 @@ class ReportStateMachine
                     $lockedReport->vulnerability_type_id
                 );
             }
+
+            // Invalidasi cache papan peringkat seketika dari titik tunggal
+            app(LeaderboardService::class)->invalidateCache();
             ReportStatusHistory::create([
                 'report_id' => $lockedReport->id,
                 'from_status' => $fromStatus,

@@ -22,7 +22,7 @@
                         @endif
                     </div>
                     <h2 class="font-bold text-lg text-slate-900 mb-2 tracking-tight">{{ $announcement->title }}</h2>
-                    <div class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{{ $announcement->body }}</div>
+                    <div class="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none">{!! $announcement->rendered_body !!}</div>
                 </div>
             @empty
                 <x-clay.empty-state

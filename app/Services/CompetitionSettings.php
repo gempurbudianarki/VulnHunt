@@ -97,22 +97,118 @@ class CompetitionSettings
         return $default;
     }
 
+    public const DATE_KEYS = [
+        'registration_open_at',
+        'registration_close_at',
+        'submission_open_at',
+        'submission_close_at',
+    ];
+
+    /**
+     * Normalisasi nilai sebelum disimpan. Nilai tanggal dalam WIB dikonversi dan disimpan dalam UTC.
+     */
+    public function normalizeValue(string $key, mixed $value): mixed
+    {
+        if (in_array($key, self::DATE_KEYS, true)) {
+            if ($value === null || $value === '') {
+                return null;
+            }
+            if ($value instanceof Carbon) {
+                return $value->copy()->setTimezone('UTC')->format('Y-m-d H:i:s');
+            }
+            if (is_string($value) && trim($value) !== '') {
+                $hasExplicitTz = str_contains($value, '+') || str_contains($value, 'Z') || preg_match('/\s(WIB|UTC|GMT)/i', $value);
+                $carbon = $hasExplicitTz ? Carbon::parse($value) : Carbon::parse($value, 'Asia/Jakarta');
+                return $carbon->setTimezone('UTC')->format('Y-m-d H:i:s');
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Mengambil daftar seluruh nilai default resmi
+     */
+    public function getDefaults(): array
+    {
+        return $this->defaults;
+    }
+
+    /**
+     * Mengambil nilai default resmi untuk satu kunci
+     */
+    public function getDefault(string $key): mixed
+    {
+        return $this->defaults[$key] ?? null;
+    }
+
+    /**
+     * Reset nilai pengaturan ke default resmi
+     */
+    public function reset(string $key, ?int $updatedBy = null): void
+    {
+        if (! array_key_exists($key, $this->defaults)) {
+            throw new InvalidArgumentException("Kunci pengaturan {$key} tidak memiliki nilai default.");
+        }
+
+        $this->set($key, $this->defaults[$key], $updatedBy);
+    }
+
+    /**
+     * Memastikan seluruh kunci default tersimpan di tabel database
+     */
+    public function ensureAllKeysSeeded(): void
+    {
+        foreach ($this->defaults as $key => $defaultVal) {
+            if (! CompetitionSetting::where('key', $key)->exists()) {
+                CompetitionSetting::create([
+                    'key' => $key,
+                    'value' => ['value' => $defaultVal],
+                ]);
+            }
+        }
+    }
+
     /**
      * Menyimpan satu setting dan meng-invalidasi cache bersama seketika.
      */
     public function set(string $key, mixed $value, ?int $updatedBy = null): void
     {
         $this->validateKey($key, $value);
+        $normalized = $this->normalizeValue($key, $value);
+        $oldValue = $this->get($key);
+
+        $causerId = $updatedBy ?? (auth()->check() ? auth()->id() : null);
 
         CompetitionSetting::updateOrCreate(
             ['key' => $key],
             [
-                'value' => ['value' => $value],
-                'updated_by' => $updatedBy,
+                'value' => ['value' => $normalized],
+                'updated_by' => $causerId,
             ]
         );
 
         $this->flushCache();
+
+        if (function_exists('activity')) {
+            try {
+                $causer = $causerId ? \App\Models\User::find($causerId) : null;
+                $activity = activity('competition_settings')
+                    ->withProperties([
+                        'key' => $key,
+                        'old' => $oldValue,
+                        'new' => $normalized,
+                    ]);
+
+                if ($causer) {
+                    $activity->causedBy($causer);
+                }
+
+                $activity->log("Pengaturan {$key} diperbarui");
+            } catch (\Throwable $e) {
+                // Jangan gagalkan penyimpanan jika log gagal
+            }
+        }
     }
 
     /**
@@ -125,10 +221,11 @@ class CompetitionSettings
         }
 
         foreach ($settings as $key => $value) {
+            $normalized = $this->normalizeValue($key, $value);
             CompetitionSetting::updateOrCreate(
                 ['key' => $key],
                 [
-                    'value' => ['value' => $value],
+                    'value' => ['value' => $normalized],
                     'updated_by' => $updatedBy,
                 ]
             );
@@ -143,6 +240,12 @@ class CompetitionSettings
     public function flushCache(): void
     {
         Cache::forget(self::CACHE_KEY);
+
+        try {
+            app(LeaderboardService::class)->invalidateCache();
+        } catch (\Throwable $e) {
+            //
+        }
     }
 
     /**
@@ -200,6 +303,42 @@ class CompetitionSettings
                 }
                 break;
 
+            case 'rules_version':
+                if (empty($value) || (! is_string($value) && ! is_numeric($value))) {
+                    throw new InvalidArgumentException('Versi aturan (rules_version) harus berupa teks atau angka non-kosong.');
+                }
+                break;
+
+            case 'diminishing_enabled':
+                if (! is_bool($value)) {
+                    throw new InvalidArgumentException('Status diminishing_enabled harus berupa boolean (true/false).');
+                }
+                break;
+
+            case 'diminishing_steps':
+                if (! is_array($value) || empty($value)) {
+                    throw new InvalidArgumentException('Tahapan diminishing_steps harus berupa array angka.');
+                }
+                foreach ($value as $step) {
+                    if (! is_numeric($step) || $step <= 0) {
+                        throw new InvalidArgumentException('Setiap nilai diminishing_steps harus berupa angka positif.');
+                    }
+                }
+                break;
+
+            case 'registration_open_at':
+            case 'registration_close_at':
+            case 'submission_open_at':
+            case 'submission_close_at':
+                if ($value !== null && $value !== '') {
+                    try {
+                        Carbon::parse($value);
+                    } catch (\Throwable $e) {
+                        throw new InvalidArgumentException("Format tanggal untuk {$key} tidak valid.");
+                    }
+                }
+                break;
+
             case 'registration_rate_limit_per_hour':
             case 'report_rate_limit_per_hour':
             case 'upload_rate_limit_per_minute':
@@ -212,18 +351,31 @@ class CompetitionSettings
     }
 
     /**
-     * Cek apakah pendaftaran saat ini sedang terbuka
+     * Mengambil nilai tanggal dalam zona waktu Asia/Jakarta (WIB) untuk form input / tampilan
+     */
+    public function getWib(string $key): ?Carbon
+    {
+        $val = $this->get($key);
+        if ($val === null || $val === '') {
+            return null;
+        }
+
+        return Carbon::parse($val, 'UTC')->setTimezone('Asia/Jakarta');
+    }
+
+    /**
+     * Cek apakah pendaftaran saat ini sedang terbuka (perbandingan absolut di zona UTC)
      */
     public function isRegistrationOpen(): bool
     {
-        $now = now();
+        $now = now()->utc();
         $openAt = $this->get('registration_open_at');
         $closeAt = $this->get('registration_close_at');
 
-        if ($openAt && $now->lt(Carbon::parse($openAt))) {
+        if ($openAt && $now->lt(Carbon::parse($openAt, 'UTC')->utc())) {
             return false;
         }
-        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt, 'UTC')->utc())) {
             return false;
         }
 
@@ -231,18 +383,18 @@ class CompetitionSettings
     }
 
     /**
-     * Cek apakah pengiriman laporan saat ini sedang terbuka
+     * Cek apakah pengiriman laporan saat ini sedang terbuka (perbandingan absolut di zona UTC)
      */
     public function isSubmissionOpen(): bool
     {
-        $now = now();
+        $now = now()->utc();
         $openAt = $this->get('submission_open_at');
         $closeAt = $this->get('submission_close_at');
 
-        if ($openAt && $now->lt(Carbon::parse($openAt))) {
+        if ($openAt && $now->lt(Carbon::parse($openAt, 'UTC')->utc())) {
             return false;
         }
-        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt, 'UTC')->utc())) {
             return false;
         }
 

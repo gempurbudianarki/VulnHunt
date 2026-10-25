@@ -161,6 +161,9 @@ class PointsCalculator
                 ]);
             }
         });
+
+        // Invalidasi cache papan peringkat terpusat
+        app(LeaderboardService::class)->invalidateCache();
     }
 
     /**

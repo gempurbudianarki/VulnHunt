@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Gate::policy(\Spatie\Activitylog\Models\Activity::class, \App\Policies\ActivityPolicy::class);
+
         // Rate Limiter Fase 2 (Spesifikasi Bagian 8.9):
         // 1. Kirim laporan: 10 per jam per tim
         RateLimiter::for('reports', function (Request $request) {

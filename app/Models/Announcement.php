@@ -26,6 +26,19 @@ class Announcement extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (Announcement $announcement) {
+            if ($announcement->body !== null) {
+                $announcement->body = \App\Services\MarkdownSanitizer::clean($announcement->body);
+            }
+
+            if (! $announcement->created_by && auth()->check()) {
+                $announcement->created_by = auth()->id();
+            }
+        });
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -35,5 +48,10 @@ class Announcement extends Model
     {
         return $query->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    public function getRenderedBodyAttribute(): string
+    {
+        return \App\Services\MarkdownSanitizer::render($this->body);
     }
 }

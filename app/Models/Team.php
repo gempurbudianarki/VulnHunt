@@ -41,6 +41,16 @@ class Team extends Model
                 $team->invite_code = self::generateUniqueInviteCode();
             }
         });
+
+        static::saved(function (Team $team) {
+            if ($team->wasChanged(['status', 'name'])) {
+                app(\App\Services\LeaderboardService::class)->invalidateCache();
+            }
+        });
+
+        static::deleted(function () {
+            app(\App\Services\LeaderboardService::class)->invalidateCache();
+        });
     }
 
     public static function generateUniqueInviteCode(): string

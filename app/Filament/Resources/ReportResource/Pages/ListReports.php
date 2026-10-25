@@ -11,6 +11,14 @@ class ListReports extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            \Filament\Actions\Action::make('exportCsv')
+                ->label('Ekspor CSV Laporan')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false)
+                ->url(route('admin.export.reports'))
+                ->openUrlInNewTab(),
+        ];
     }
 }

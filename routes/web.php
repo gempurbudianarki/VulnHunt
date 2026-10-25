@@ -89,3 +89,9 @@ Route::middleware(['auth', 'verified'])->prefix('app')->group(function () {
         });
     });
 });
+
+// Admin CSV Exports (Admin Only)
+Route::middleware(['auth'])->prefix('admin/export')->name('admin.export.')->group(function () {
+    Route::get('/reports', [\App\Http\Controllers\Admin\ExportController::class, 'exportReports'])->name('reports');
+    Route::get('/leaderboard', [\App\Http\Controllers\Admin\ExportController::class, 'exportLeaderboard'])->name('leaderboard');
+});
