@@ -8,7 +8,8 @@ Platform resmi pelaksanaan sayembara bug bounty kampus Universitas Bina Bangsa G
 
 | Parameter | Nilai Minimal | Rekomendasi Produksi | Catatan Kritis |
 | :--- | :--- | :--- | :--- |
-| **PHP** | 8.2+ | 8.2 atau 8.3 | Ekstensi: `pdo_mysql`, `gd`, `intl`, `mbstring`, `openssl`, `bcmath`, `fileinfo` |
+| **Framework** | **Laravel 12.x** (v12.70.1) | Laravel 12.x | Patch keamanan aktif didukung hingga **24 Februari 2027** |
+| **PHP** | **8.2+** | **8.3 atau 8.4** (Terverifikasi di PHP 8.4.23) | Ekstensi: `pdo_mysql`, `gd`, `intl`, `mbstring`, `openssl`, `bcmath`, `fileinfo` |
 | **MySQL / MariaDB** | MySQL 8.0+ / MariaDB 10.6+ | MySQL 8.0.30+ | Wajib InnoDB storage engine untuk mendukung `SELECT ... FOR UPDATE` |
 | **Node.js** | 18+ | 20+ LTS | Untuk kompilasi Vite frontend |
 | `post_max_size` | **256M** | **512M** | Menerima payload laporan temuan beserta hingga 8 berkas lampiran (PoC) |

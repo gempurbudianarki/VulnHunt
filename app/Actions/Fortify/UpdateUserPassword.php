@@ -34,6 +34,16 @@ class UpdateUserPassword implements UpdatesUserPasswords
 
         if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::id() === $user->id) {
             \Illuminate\Support\Facades\Auth::logoutOtherDevices($input['password']);
+            if (request()->hasSession()) {
+                $guard = \Illuminate\Support\Facades\Auth::guard();
+                $hash = method_exists($guard, 'hashPasswordForCookie')
+                    ? $guard->hashPasswordForCookie($user->getAuthPassword())
+                    : $user->getAuthPassword();
+
+                request()->session()->put([
+                    'password_hash_'.\Illuminate\Support\Facades\Auth::getDefaultDriver() => $hash,
+                ]);
+            }
         }
     }
 }

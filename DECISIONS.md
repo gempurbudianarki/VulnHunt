@@ -269,3 +269,24 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
   5. Oleh karena itu, kebijakan CSP dijalankan dalam mode terdokumentasi dengan perlindungan nonce ketat untuk script eksternal, dan mode *enforce* aktif di produksi tidak diaktifkan sebelum terbukti tidak merusak fungsionalitas interaktif halaman.
 - **Alasan**: Mencegah pemblokiran fungsionalitas inti aplikasi (form submission, interactive CVSS calculator, triage actions di Filament) oleh browser pengguna.
 
+---
+
+## 24. Pemilihan Versi Framework: Peningkatan ke Laravel 12 (v12.70.1) & Penundaan Laravel 13
+- **Keputusan**:
+  1. Dilakukan audit kompatibilitas dependensi untuk peningkatan framework:
+     - Perintah `composer why-not laravel/framework ">=13.0 <14.0"` membuktikan bahwa Laravel 13 belum dapat digunakan karena dependensi kunci ekosistem testing dan tooling belum mendukungnya:
+       * `pestphp/pest-plugin-laravel v3.2.0` membutuhkan `illuminate/testing: ^11.39.1|^12.9.2`
+       * `laravel/tinker v2.11.1` membutuhkan `illuminate/console: ^11.0|^12.0`
+     - Perintah `composer why-not laravel/framework ">=12.0 <13.0"` mengonfirmasi kompatibilitas 100% di seluruh ekosistem (Filament v3.3, Fortify v1.31, Spatie Permission v6.24, Pest v3.8, Dompdf v3.1, Intervention Image v3.11, Livewire v3.7).
+  2. Platform resmi dinaikkan ke **Laravel 12 (v12.70.1)** pada branch terisolasi `upgrade/laravel-12-or-13`.
+  3. Batas Dukungan Resmi (SLA Security Support):
+     - Laravel 11: Dukungan patch keamanan telah berakhir pada 12 Maret 2026.
+     - Laravel 12: Mendapat perbaikan bug umum hingga 24 Agustus 2026 dan **patch keamanan aktif hingga 24 Februari 2027**.
+  4. Hasil audit validasi pada Laravel 12:
+     - `composer audit`: 0 kerentanan keamanan (*No security vulnerability advisories found*).
+     - Seluruh 160 pengujian otomatis (`php artisan test`) lulus 100% (889 assertions).
+     - Simulasi `php artisan vulnhunt:preflight` lingkungan produksi lulus 12/12 kriteria dengan exit code 0.
+     - Uji konkurensi paralel MySQL (pessimistic locking kuota laporan dan slot tim) lulus sempurna.
+- **Alasan**: Menghadirkan jaminan keamanan berbasis LTS/versi terdukung aktif hingga 2027 tanpa merusak kompatibilitas plugin atau fitur platform.
+
+

@@ -22,6 +22,7 @@ yarn-error.log
 # Generated and audit files
 /docs/test-output.txt
 /docs/test-*.txt
+/docs/laravel12-test-output.txt
 /docs/lighthouse/*.json
 /scripts/raw_select_timezone.php
 /scripts/simulate_preflight.php
