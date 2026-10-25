@@ -65,8 +65,8 @@ export default {
                 },
             },
             fontFamily: {
-                sans: ['"Inter"', '"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
-                display: ['"Plus Jakarta Sans"', '"Inter"', ...defaultTheme.fontFamily.sans],
+                sans: ['"Outfit"', '"Inter"', '"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
+                display: ['"Outfit"', '"Plus Jakarta Sans"', '"Inter"', ...defaultTheme.fontFamily.sans],
                 mono: ['"JetBrains Mono"', ...defaultTheme.fontFamily.mono],
             },
             borderRadius: {

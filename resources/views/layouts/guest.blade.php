@@ -23,120 +23,158 @@
     <!-- Fonts & Vite Assets -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
     </noscript>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-full bg-brand-canvas text-brand-dark font-sans antialiased flex flex-col justify-between selection:bg-brand-primary/20 selection:text-brand-primary">
     <!-- Navbar Claymorphism Publik -->
-    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 shadow-sm transition-all duration-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <a href="{{ url('/') }}" class="flex items-center gap-3.5 group focus:outline-none focus:ring-4 focus:ring-brand-primary/20 rounded-clay-pill p-1">
-                <div class="w-12 h-12 rounded-clay-md bg-white border border-slate-200/80 shadow-clay-card-light flex items-center justify-center p-1 group-hover:scale-105 transition-transform duration-200 shrink-0">
-                    <img src="{{ asset('brand/logo-nav.webp') }}" alt="Logo VulnHunt" width="48" height="48" class="w-full h-full object-contain" decoding="async">
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="{{ url('/') }}" class="flex items-center gap-3 group focus:outline-none focus:ring-4 focus:ring-brand-primary/20 rounded-clay-pill p-1">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-clay-md bg-white border border-slate-200/80 shadow-clay-card-light flex items-center justify-center p-1 group-hover:scale-105 transition-transform duration-200 shrink-0">
+                    <img src="{{ asset('brand/logo-nav.webp') }}" alt="Logo VulnHunt" width="44" height="44" class="w-full h-full object-contain" decoding="async">
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="font-display font-extrabold text-xl text-brand-dark tracking-tight leading-none">VulnHunt</span>
+                        <span class="font-display font-extrabold text-lg sm:text-xl text-brand-dark tracking-tight leading-none">VulnHunt</span>
                         <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200/70 text-[10px] py-0.5 px-2">UBBG</span>
                     </div>
-                    <span class="text-xs text-slate-600 font-medium block mt-0.5">Platform Lomba Bug Bounty</span>
+                    <span class="text-[11px] sm:text-xs text-slate-500 font-medium block mt-0.5">Platform Lomba Bug Bounty</span>
                 </div>
             </a>
 
-            <!-- Navigation Links -->
-            <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700">
-                <a href="#tentang" class="hover:text-brand-primary transition-colors py-1">Tentang</a>
-                <a href="#alur" class="hover:text-brand-primary transition-colors py-1">Alur Lomba</a>
-                <a href="#jadwal" class="hover:text-brand-primary transition-colors py-1">Jadwal</a>
-                <a href="#faq" class="hover:text-brand-primary transition-colors py-1">FAQ</a>
-            </nav>
+            <!-- Navigation Links (Only on Homepage) -->
+            @if(request()->is('/'))
+                <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700">
+                    <a href="#tentang" class="hover:text-brand-primary transition-colors py-1">Tentang</a>
+                    <a href="#alur" class="hover:text-brand-primary transition-colors py-1">Alur Lomba</a>
+                    <a href="#jadwal" class="hover:text-brand-primary transition-colors py-1">Jadwal</a>
+                    <a href="#faq" class="hover:text-brand-primary transition-colors py-1">FAQ</a>
+                </nav>
+            @endif
 
-            <!-- Auth CTA -->
-            <div class="flex items-center gap-3">
+            <!-- Auth Contextual CTA -->
+            <div class="flex items-center gap-2 sm:gap-3">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="btn-clay-primary text-sm py-2 px-5">
+                    <a href="{{ route('dashboard') }}" class="btn-clay-primary text-xs sm:text-sm py-2 px-4 sm:px-5">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                         </svg>
                         <span>Dasbor</span>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="btn-clay-secondary text-sm py-2 px-4 hidden sm:inline-flex">
-                        Masuk
-                    </a>
-                    <a href="{{ route('register') }}" class="btn-clay-primary text-sm py-2 px-5">
-                        Daftar Tim
-                    </a>
+                    @if(request()->routeIs('login'))
+                        <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-brand-primary py-1.5 px-2.5 rounded-clay-pill hover:bg-slate-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            <span class="hidden sm:inline">Beranda</span>
+                        </a>
+                        <a href="{{ route('register') }}" class="btn-clay-primary text-xs sm:text-sm py-2 px-3.5 sm:px-4 font-bold shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover">
+                            Daftar Tim
+                        </a>
+                    @elseif(request()->routeIs('register'))
+                        <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-brand-primary py-1.5 px-2.5 rounded-clay-pill hover:bg-slate-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            <span class="hidden sm:inline">Beranda</span>
+                        </a>
+                        <a href="{{ route('login') }}" class="btn-clay-primary text-xs sm:text-sm py-2 px-3.5 sm:px-4 font-bold shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover">
+                            Masuk
+                        </a>
+                    @elseif(request()->routeIs('password.*', 'two-factor.*', 'verification.*'))
+                        <a href="{{ route('login') }}" class="btn-clay-secondary text-xs sm:text-sm py-2 px-3.5 sm:px-4 font-bold">
+                            &larr; Masuk
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="btn-clay-secondary text-sm py-2 px-4 hidden sm:inline-flex">
+                            Masuk
+                        </a>
+                        <a href="{{ route('register') }}" class="btn-clay-primary text-sm py-2 px-5 font-bold">
+                            Daftar Tim
+                        </a>
+                    @endif
                 @endauth
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-grow flex flex-col">
         {{ $slot }}
     </main>
 
-    <!-- Footer Claymorphism -->
-    <footer class="bg-slate-900 text-slate-300 py-16 border-t border-slate-800 mt-20 relative overflow-hidden">
-        <!-- Subtle background glow -->
-        <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+    @if(request()->routeIs('login', 'register', 'password.*', 'two-factor.*', 'verification.*'))
+        <!-- Slim Auth Footer (Fits Viewport Perfectly Without Scrolling) -->
+        <footer class="py-2.5 sm:py-3 text-center text-[11px] text-slate-500 border-t border-slate-200/80 bg-white/70 backdrop-blur-sm shrink-0">
+            <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1">
+                <span>&copy; {{ date('Y') }} VulnHunt &bull; Universitas Bina Bangsa Getsempena</span>
+                <span class="text-[10px] text-slate-400 font-mono">Protokol Keamanan Siber Safe Harbor Aktif</span>
+            </div>
+        </footer>
+    @else
+        <!-- Full Marketing Footer Claymorphism -->
+        <footer class="bg-slate-900 text-slate-300 py-16 border-t border-slate-800 mt-20 relative overflow-hidden">
+            <!-- Subtle background glow -->
+            <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
-                <!-- Col 1: Brand Info -->
-                <div class="md:col-span-2 space-y-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-clay-sm bg-white/10 p-1 flex items-center justify-center">
-                            <img src="{{ asset('brand/logo-nav.webp') }}" alt="VulnHunt Logo" width="40" height="40" class="w-full h-full object-contain" loading="lazy" decoding="async">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
+                    <!-- Col 1: Brand Info -->
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-clay-sm bg-white/10 p-1 flex items-center justify-center">
+                                <img src="{{ asset('brand/logo-nav.webp') }}" alt="VulnHunt Logo" width="40" height="40" class="w-full h-full object-contain" loading="lazy" decoding="async">
+                            </div>
+                            <span class="font-display font-extrabold text-xl text-white tracking-tight">VulnHunt</span>
                         </div>
-                        <span class="font-display font-extrabold text-xl text-white tracking-tight">VulnHunt</span>
+                        <p class="text-sm text-slate-300 max-w-md leading-relaxed">
+                            Platform resmi kompetisi pengujian celah keamanan siber (Bug Bounty) internal Universitas Bina Bangsa Getsempena. Wadah riset etis, aman, dan bertanggung jawab.
+                        </p>
+                        <div class="pt-2">
+                            <span class="clay-badge bg-emerald-950/70 text-emerald-300 border-emerald-700/80 text-xs">
+                                Safe Harbor Dilindungi Kebijakan Kampus
+                            </span>
+                        </div>
                     </div>
-                    <p class="text-sm text-slate-300 max-w-md leading-relaxed">
-                        Platform resmi kompetisi pengujian celah keamanan siber (Bug Bounty) internal Universitas Bina Bangsa Getsempena. Wadah riset etis, aman, dan bertanggung jawab.
+
+                    <!-- Col 2: Navigasi Cepat -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Navigasi Program</p>
+                        <ul class="space-y-2.5 text-sm">
+                            <li><a href="#tentang" class="text-slate-300 hover:text-white transition-colors">Tentang Kompetisi</a></li>
+                            <li><a href="#alur" class="text-slate-300 hover:text-white transition-colors">Alur Pelaksanaan</a></li>
+                            <li><a href="#jadwal" class="text-slate-300 hover:text-white transition-colors">Jadwal Penting</a></li>
+                            <li><a href="#faq" class="text-slate-300 hover:text-white transition-colors">Pertanyaan Umum (FAQ)</a></li>
+                            <li><a href="{{ route('login') }}" class="text-slate-300 hover:text-white transition-colors">Masuk Peserta</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Col 3: Kontak & Penyelenggara -->
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Penyelenggara Resmi</p>
+                        <div class="space-y-2 text-sm text-slate-300">
+                            <p class="font-semibold text-white">Universitas Bina Bangsa Getsempena</p>
+                            <p class="text-xs text-slate-400">Panitia Pelaksana Lomba Bug Bounty Kampus</p>
+                            <p class="text-xs text-slate-400 mt-2">Banda Aceh, Aceh - Indonesia</p>
+                            <p class="text-xs text-slate-400 font-mono">Email: panitia.vulnhunt@ubbg.ac.id</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Copyright & Safe Harbor Disclaimer -->
+                <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+                    <p>&copy; {{ date('Y') }} VulnHunt — Universitas Bina Bangsa Getsempena (UBBG). Hak Cipta Dilindungi.</p>
+                    <p class="text-center md:text-right max-w-xl">
+                        Segala aktivitas pengujian keamanan hanya diizinkan dalam ruang lingkup (scope) resmi dan setelah verifikasi NDA disetujui.
                     </p>
-                    <div class="pt-2">
-                        <span class="clay-badge bg-emerald-950/70 text-emerald-300 border-emerald-700/80 text-xs">
-                            Safe Harbor Dilindungi Kebijakan Kampus
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Col 2: Navigasi Cepat -->
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Navigasi Program</p>
-                    <ul class="space-y-2.5 text-sm">
-                        <li><a href="#tentang" class="text-slate-300 hover:text-white transition-colors">Tentang Kompetisi</a></li>
-                        <li><a href="#alur" class="text-slate-300 hover:text-white transition-colors">Alur Pelaksanaan</a></li>
-                        <li><a href="#jadwal" class="text-slate-300 hover:text-white transition-colors">Jadwal Penting</a></li>
-                        <li><a href="#faq" class="text-slate-300 hover:text-white transition-colors">Pertanyaan Umum (FAQ)</a></li>
-                        <li><a href="{{ route('login') }}" class="text-slate-300 hover:text-white transition-colors">Masuk Peserta</a></li>
-                    </ul>
-                </div>
-
-                <!-- Col 3: Kontak & Penyelenggara -->
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">Penyelenggara Resmi</p>
-                    <div class="space-y-2 text-sm text-slate-300">
-                        <p class="font-semibold text-white">Universitas Bina Bangsa Getsempena</p>
-                        <p class="text-xs text-slate-400">Panitia Pelaksana Lomba Bug Bounty Kampus</p>
-                        <p class="text-xs text-slate-400 mt-2">Banda Aceh, Aceh - Indonesia</p>
-                        <p class="text-xs text-slate-400 font-mono">Email: panitia.vulnhunt@ubbg.ac.id</p>
-                    </div>
                 </div>
             </div>
-
-            <!-- Bottom Copyright & Safe Harbor Disclaimer -->
-            <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-                <p>&copy; {{ date('Y') }} VulnHunt — Universitas Bina Bangsa Getsempena (UBBG). Hak Cipta Dilindungi.</p>
-                <p class="text-center md:text-right max-w-xl">
-                    Segala aktivitas pengujian keamanan hanya diizinkan dalam ruang lingkup (scope) resmi dan setelah verifikasi NDA disetujui.
-                </p>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    @endif
 </body>
 </html>

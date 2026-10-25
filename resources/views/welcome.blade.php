@@ -1,176 +1,95 @@
 <x-guest-layout>
     <!-- 1. Hero Section: Symmetrical High-Impact Cyber Arena -->
-    <section class="relative overflow-hidden py-16 sm:py-24 md:py-28 bg-gradient-to-b from-white via-brand-canvas/70 to-brand-canvas border-b border-slate-200/80">
-        <!-- Background Subtle Glowing Blobs -->
-        <div class="absolute -top-32 -left-32 w-[500px] h-[500px] bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/3 -right-32 w-[500px] h-[500px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+    <section class="relative overflow-hidden pt-3 pb-6 sm:pt-5 sm:pb-8 lg:pt-6 lg:pb-10 bg-gradient-to-b from-white via-brand-canvas/30 to-brand-canvas border-b border-slate-200/80">
+        <!-- Background Subtle Accents -->
+        <div class="absolute -top-16 -left-16 w-80 h-80 bg-brand-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/3 -right-16 w-80 h-80 bg-brand-accent/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
                 <!-- Left Column: Copywriting & High-Converting Actions (7 cols) -->
-                <div class="lg:col-span-7 space-y-7 text-center lg:text-left">
+                <div class="lg:col-span-7 space-y-4 sm:space-y-5 text-center lg:text-left">
                     <!-- Live Event Badge -->
-                    <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-clay-pill bg-white border border-slate-200/90 shadow-sm text-xs font-bold text-slate-800">
-                        <span class="flex h-2.5 w-2.5 relative">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-accent"></span>
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-clay-pill bg-white border border-slate-200/90 shadow-xs text-xs font-semibold text-slate-800">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <span class="tracking-wide uppercase text-[11px] text-slate-700">Kompetisi Resmi Bug Bounty • UBBG Cyber Security 2026</span>
+                        <span class="tracking-wide text-[11px] font-bold text-slate-700">Kompetisi Resmi Bug Bounty &bull; UBBG</span>
                     </div>
 
-                    <!-- Main Dynamic Headline -->
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
-                        Tantang Skilmu, Singkap Celahnya, <br class="hidden sm:inline"/>
-                        <span class="bg-gradient-to-r from-brand-primary via-indigo-600 to-brand-accent bg-clip-text text-transparent">
-                            Rebut Gelar Peneliti Keamanan Terbaik!
-                        </span>
+                    <!-- Main Dignified Headline with Luxury Outfit Font -->
+                    <h1 class="font-display text-3xl sm:text-4xl lg:text-[44px] font-black text-slate-950 tracking-tight leading-[1.12]">
+                        Tantang Kemampuanmu, <br class="hidden sm:inline"/>
+                        <span class="text-brand-primary">Lindungi Ekosistem Kampus.</span>
                     </h1>
 
                     <!-- Authoritative & Inviting Subtitle -->
-                    <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                        <strong>VulnHunt</strong> adalah arena resmi <em>ethical hacking</em> dan crowdsourced bug bounty mahasiswa <strong>Universitas Bina Bangsa Getsempena</strong>. Uji ketahanan sistem informasi kampus secara legal, asah portofolio keamanan siber standar industri, dan raih total hadiah pembinaan <strong>Rp 7.000.000,-</strong> terlindungi penuh di bawah payung hukum <em>Safe Harbor</em>.
+                    <p class="text-sm sm:text-base text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
+                        Platform resmi <em>ethical hacking</em> dan sayembara pengujian celah keamanan mahasiswa <strong>Universitas Bina Bangsa Getsempena</strong>. Uji ketahanan infrastruktur kampus secara legal di bawah payung hukum <strong>Safe Harbor</strong>, bangun portofolio industri, serta raih apresiasi dan dana pembinaan dari rektorat.
                     </p>
 
                     <!-- CTA Action Buttons -->
-                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
                         @auth
-                            <x-clay.button href="{{ route('dashboard') }}" variant="primary" size="lg" class="shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <x-clay.button href="{{ route('dashboard') }}" variant="primary" size="lg" class="shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover font-bold py-2.5 px-6">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                 </svg>
                                 <span>Buka Dasbor Tim</span>
                             </x-clay.button>
                         @else
-                            <x-clay.button href="{{ route('register') }}" variant="accent" size="lg" class="shadow-clay-btn-accent hover:shadow-clay-btn-accent-hover text-slate-950 font-black">
-                                <svg class="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            <x-clay.button href="{{ route('register') }}" variant="primary" size="lg" class="shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover font-bold py-2.5 px-6">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                 </svg>
                                 <span>Daftar Tim Sekarang</span>
                             </x-clay.button>
-                            <x-clay.button href="{{ route('login') }}" variant="secondary" size="lg">
-                                <span>Masuk Peserta</span>
+                            <x-clay.button href="{{ route('login') }}" variant="secondary" size="lg" class="py-2.5 px-5">
+                                <span>Masuk Portal</span>
                             </x-clay.button>
                         @endauth
-                        <x-clay.button href="#alur" variant="ghost" size="lg" class="text-slate-600 hover:text-brand-primary">
+                        <x-clay.button href="#alur" variant="ghost" size="lg" class="text-slate-600 hover:text-brand-primary text-xs py-2 px-3">
                             <span>Panduan Lomba &darr;</span>
                         </x-clay.button>
                     </div>
 
                     <!-- 3 Symmetrical Trust Badges -->
-                    <div class="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-700 font-semibold border-t border-slate-200/80">
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
+                    <div class="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs text-slate-700 font-semibold border-t border-slate-200/80">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                             </span>
                             <span>Safe Harbor 100% Legal</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-indigo-100 text-brand-primary flex items-center justify-center shrink-0">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-indigo-100 text-brand-primary flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                             </span>
-                            <span>Kalkulasi CVSS v3.1 Standar Global</span>
+                            <span>Kalkulasi CVSS v3.1 FIRST</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                             </span>
-                            <span>Sertifikat & Hadiah Rektorat</span>
+                            <span>Sertifikat & Dana Pembinaan</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Precision Cyber Specimen Telemetry Card (5 cols) -->
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="w-full max-w-md relative">
-                        <!-- Top Indicator Pill -->
-                        <div class="absolute -top-4 -right-2 z-20 hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-clay-pill bg-white border border-slate-200/90 shadow-clay-card-light text-xs font-bold text-slate-800">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Contoh Simulasi Telemetri</span>
-                        </div>
+                <!-- Right Column: Pure Official Cyber Security Emblem with Subtle Halo (No Box) -->
+                <div class="lg:col-span-5 flex items-center justify-center">
+                    <div class="relative flex items-center justify-center w-full py-2">
+                        <!-- Concentric Luxury Cyber Aura Behind Emblem -->
+                        <div class="absolute w-60 h-60 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full bg-gradient-to-tr from-brand-primary/15 via-indigo-400/10 to-brand-accent/15 blur-2xl pointer-events-none"></div>
+                        <div class="absolute w-52 h-52 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full border border-indigo-200/50 pointer-events-none"></div>
+                        <div class="absolute w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 rounded-full border border-dashed border-amber-300/40 pointer-events-none"></div>
 
-                        <!-- Main Specimen Clay Showcase -->
-                        <div class="clay-card p-6 sm:p-7 relative overflow-hidden border-2 border-white bg-white/95 shadow-clay-card">
-                            <!-- Card Header -->
-                            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono text-xs font-extrabold text-brand-primary bg-indigo-50 border border-indigo-200/70 px-3 py-1 rounded-clay-pill">
-                                        CONTOH LAPORAN #VH-2026-0042
-                                    </span>
-                                </div>
-                                <span class="clay-badge bg-rose-50 text-rose-700 border-rose-200 text-xs py-1 px-3">
-                                    <span class="w-2 h-2 rounded-full bg-rose-600"></span>
-                                    CRITICAL (CVSS 9.8)
-                                </span>
-                            </div>
-
-                            <!-- Specimen Body -->
-                            <div class="space-y-4">
-                                <div>
-                                    <p class="text-lg font-bold text-slate-900 leading-snug">
-                                        Remote Code Execution via Insecure Deserialization
-                                    </p>
-                                    <p class="text-xs text-slate-600 font-mono mt-1.5 flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                                        </svg>
-                                        <span class="truncate">portal-demo.ubbg.ac.id/api/v1/auth (Simulasi)</span>
-                                    </p>
-                                </div>
-
-                                <!-- Metadata Grid -->
-                                <div class="grid grid-cols-2 gap-3 text-xs p-3.5 bg-slate-50/90 rounded-clay-md border border-slate-200/80">
-                                    <div>
-                                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Kategori CWE</span>
-                                        <span class="font-semibold text-slate-800">CWE-502 Deserialization</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Penemu Laporan</span>
-                                        <span class="font-semibold text-slate-800">Tim CyberSquad UBBG (Contoh)</span>
-                                    </div>
-                                </div>
-
-                                <!-- Mini Triage Flow Pipeline -->
-                                <div class="p-3 bg-indigo-50/50 rounded-clay-md border border-indigo-100/80 text-[11px] space-y-1.5">
-                                    <div class="flex items-center justify-between text-slate-600 font-medium">
-                                        <span>Status Triage Dewan Juri:</span>
-                                        <span class="text-emerald-700 font-bold">100% Terverifikasi</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <div class="flex-1 h-1.5 rounded-full bg-emerald-500"></div>
-                                        <div class="flex-1 h-1.5 rounded-full bg-emerald-500"></div>
-                                        <div class="flex-1 h-1.5 rounded-full bg-brand-primary"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Status & Points Rewarded -->
-                                <div class="pt-2 flex items-center justify-between text-xs">
-                                    <div class="flex items-center gap-2 text-emerald-700 font-bold">
-                                        <div class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        </div>
-                                        <span>Status: RESOLVED</span>
-                                    </div>
-                                    <span class="font-mono font-extrabold text-sm text-brand-primary bg-indigo-50 px-3 py-1 rounded-clay-pill border border-indigo-200/80">
-                                        +150 Poin Tim (Contoh)
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Floating Stat Pill Bottom Left -->
-                        <div class="absolute -bottom-4 -left-3 z-20 hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-clay-pill bg-white border border-slate-200/90 shadow-clay-card-light text-xs font-semibold text-slate-800">
-                            <span class="w-2.5 h-2.5 rounded-full bg-brand-primary"></span>
-                            <span>Target Scope (Ilustrasi): Web & API Kampus UBBG</span>
-                        </div>
+                        <!-- The Official Emblem -->
+                        <img src="{{ asset('brand/emblem-cyber.png') }}"
+                             alt="Lambang Keamanan Siber UBBG"
+                             class="w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 object-contain drop-shadow-[0_15px_30px_rgba(37,58,161,0.2)] relative z-10 transition-transform duration-300 hover:scale-105"
+                             loading="eager">
                     </div>
                 </div>
             </div>
@@ -178,28 +97,28 @@
     </section>
 
     <!-- 2. Symmetrical 4-Grid Key Metrics Strip -->
-    <section class="py-10 bg-white border-b border-slate-200/80">
+    <section class="py-5 sm:py-6 bg-white border-b border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
-                    <p class="text-2xl sm:text-3xl font-black text-brand-primary font-mono tracking-tight">Rp 7.000.000</p>
-                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Total Dana Pembinaan</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Apresiasi Finansial Juara</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 text-center">
+                <div class="p-3.5 sm:p-4 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="font-display text-lg sm:text-xl font-extrabold text-brand-primary tracking-tight">Dana Pembinaan</p>
+                    <p class="text-[11px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">Apresiasi Juara</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Hadiah Finansial & Trofi</p>
                 </div>
-                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
-                    <p class="text-2xl sm:text-3xl font-black text-emerald-600 font-mono tracking-tight">100% Legal</p>
-                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Payung Safe Harbor</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Dilindungi Kebijakan Kampus</p>
+                <div class="p-3.5 sm:p-4 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="font-display text-lg sm:text-xl font-extrabold text-emerald-600 tracking-tight">100% Legal</p>
+                    <p class="text-[11px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">Payung Safe Harbor</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Dilindungi Kebijakan Kampus</p>
                 </div>
-                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
-                    <p class="text-2xl sm:text-3xl font-black text-amber-900 font-mono tracking-tight">CVSS v3.1</p>
-                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Standar Global FIRST</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Triage Transparan & Adil</p>
+                <div class="p-3.5 sm:p-4 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="font-display text-lg sm:text-xl font-extrabold text-amber-900 tracking-tight">CVSS v3.1</p>
+                    <p class="text-[11px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">Standar Global FIRST</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Triage Transparan & Adil</p>
                 </div>
-                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
-                    <p class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">E-Sertifikat</p>
-                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Kredensial Rektorat</p>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Portofolio Karir Industri</p>
+                <div class="p-3.5 sm:p-4 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="font-display text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">E-Sertifikat</p>
+                    <p class="text-[11px] font-bold text-slate-700 mt-0.5 uppercase tracking-wider">Kredensial Rektorat</p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Portofolio Karir Industri</p>
                 </div>
             </div>
         </div>
@@ -284,10 +203,10 @@
             <div class="text-center max-w-3xl mx-auto">
                 <span class="clay-badge bg-amber-50 text-amber-900 border-amber-200 mb-3">Penghargaan Bergengsi</span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                    Podium Kehormatan Peneliti Terbaik UBBG 2026
+                    Podium Kehormatan Peneliti Terbaik UBBG
                 </h2>
                 <p class="text-base text-slate-600 mt-3 leading-relaxed">
-                    Total dana pembinaan <strong>Rp 7.000.000,-</strong> beserta trofi dan piagam rektorat dipersembahkan kepada tim dengan akumulasi poin laporan valid tertinggi:
+                    Dana pembinaan juara beserta trofi eksklusif dan piagam penghargaan rektorat dipersembahkan kepada tim dengan akumulasi poin laporan valid tertinggi:
                 </p>
             </div>
 

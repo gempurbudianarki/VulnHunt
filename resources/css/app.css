@@ -85,3 +85,46 @@
         border-left: 6px solid theme('colors.severity.info');
     }
 }
+
+@layer utilities {
+    /* Cyber & Modern Micro-animations */
+    @keyframes float-subtle {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+    }
+
+    @keyframes pulse-aura {
+        0%, 100% { opacity: 0.35; transform: scale(1); }
+        50% { opacity: 0.65; transform: scale(1.05); }
+    }
+
+    @keyframes shimmer-sweep {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .animate-float-subtle {
+        animation: float-subtle 4s ease-in-out infinite;
+    }
+
+    .animate-pulse-aura {
+        animation: pulse-aura 3s ease-in-out infinite;
+    }
+
+    .animate-shimmer {
+        animation: shimmer-sweep 2s infinite;
+    }
+
+    /* Cyber Matrix Tech Dot Grid */
+    .bg-cyber-dots {
+        background-image: radial-gradient(rgba(37, 58, 161, 0.12) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    .bg-cyber-grid {
+        background-image: linear-gradient(to right, rgba(37, 58, 161, 0.05) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(37, 58, 161, 0.05) 1px, transparent 1px);
+        background-size: 28px 28px;
+    }
+}
+
