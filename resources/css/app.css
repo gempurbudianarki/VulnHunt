@@ -1,48 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+    :root {
+        --brand-primary: #253AA1;
+        --brand-primary-hover: #1E2D7D;
+        --brand-accent: #F88706;
+        --brand-accent-hover: #E07500;
+        --brand-slate: #4B6186;
+        --brand-canvas: #EEF2F6;
+        --brand-surface: #FFFFFF;
+        --brand-dark: #0F172A;
+    }
+
     body {
-        @apply bg-sage text-lumut font-sans antialiased selection:bg-ambar/30 selection:text-lumut;
-        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        @apply bg-brand-canvas text-brand-dark font-sans antialiased selection:bg-brand-primary/20 selection:text-brand-primary min-h-screen;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        @apply font-display text-lumut tracking-tight;
+        @apply font-display text-brand-dark tracking-tight font-bold;
     }
 }
 
 @layer components {
-    /* Claymorphism Interactive Button */
+    /* Clay Card Component */
+    .clay-card {
+        @apply bg-white border border-white/80 rounded-clay-lg shadow-clay-card transition-all duration-200;
+    }
+
+    .clay-card-interactive {
+        @apply bg-white border border-white/80 rounded-clay-lg shadow-clay-card hover:shadow-clay-card-hover hover:-translate-y-1 transition-all duration-200;
+    }
+
+    .clay-card-light {
+        @apply bg-white border border-slate-200/70 rounded-clay-md shadow-clay-card-light transition-all duration-150;
+    }
+
+    /* Clay Buttons */
     .btn-clay-primary {
-        @apply inline-flex items-center justify-center px-6 py-3 bg-daun hover:bg-daun-hover text-white font-medium rounded-clay shadow-clay-btn active:shadow-clay-btn-active active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-daun/40 focus:ring-offset-2;
+        @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary hover:bg-brand-primary-hover text-white font-semibold rounded-clay-pill shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover active:shadow-clay-btn-primary-active active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-brand-primary/20 focus:ring-offset-2;
+    }
+
+    .btn-clay-accent {
+        @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-accent hover:bg-brand-accent-hover text-slate-900 font-bold rounded-clay-pill shadow-clay-btn-accent hover:shadow-clay-btn-accent-hover active:shadow-clay-btn-accent-active active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-brand-accent/30 focus:ring-offset-2;
     }
 
     .btn-clay-secondary {
-        @apply inline-flex items-center justify-center px-5 py-2.5 bg-putih-daun hover:bg-white text-lumut font-medium rounded-clay border border-abu-batu/20 shadow-sm hover:border-abu-batu/40 active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-lumut/20 focus:ring-offset-2;
+        @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold rounded-clay-pill border border-slate-200/80 shadow-clay-btn-secondary hover:shadow-clay-btn-secondary-hover active:shadow-clay-btn-secondary-active active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-slate-400/20 focus:ring-offset-2;
     }
 
-    /* Specimen Card Left Border Utility */
+    .btn-clay-danger {
+        @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-clay-pill shadow-sm active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-rose-500/20 focus:ring-offset-2;
+    }
+
+    /* Clay Form Controls */
+    .clay-input {
+        @apply w-full bg-slate-50/80 hover:bg-white text-slate-900 placeholder:text-slate-400 font-medium rounded-input border-2 border-slate-200/90 px-4 py-2.5 shadow-clay-input transition-all duration-150 focus:bg-white focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/15;
+    }
+
+    /* Clay Pill / Badge */
+    .clay-badge {
+        @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-clay-pill text-xs font-semibold border shadow-clay-pill;
+    }
+
+    /* Specimen / Severity Borders */
     .specimen-card {
-        @apply bg-putih-daun border border-abu-batu/20 rounded-panel relative overflow-hidden transition-all duration-200 hover:border-abu-batu/40 hover:shadow-md;
+        @apply bg-white border border-slate-200/70 rounded-clay-md shadow-clay-card-light overflow-hidden transition-all duration-200 hover:border-slate-300 hover:shadow-md;
     }
 
     .specimen-border-critical {
-        border-left: 5px solid theme('colors.severity.critical');
+        border-left: 6px solid theme('colors.severity.critical');
     }
     .specimen-border-high {
-        border-left: 5px solid theme('colors.severity.high');
+        border-left: 6px solid theme('colors.severity.high');
     }
     .specimen-border-medium {
-        border-left: 5px solid theme('colors.severity.medium');
+        border-left: 6px solid theme('colors.severity.medium');
     }
     .specimen-border-low {
-        border-left: 5px solid theme('colors.severity.low');
+        border-left: 6px solid theme('colors.severity.low');
     }
     .specimen-border-info {
-        border-left: 5px solid theme('colors.severity.info');
+        border-left: 6px solid theme('colors.severity.info');
     }
 }

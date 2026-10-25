@@ -1,82 +1,175 @@
 <x-guest-layout>
-    <!-- 1. Hero Section -->
-    <section class="relative overflow-hidden py-16 md:py-24 border-b border-abu-batu/20 bg-gradient-to-b from-sage-light via-sage to-sage">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lumut/5 border border-lumut/15 text-xs font-semibold text-lumut">
-                        <span class="w-2 h-2 rounded-full bg-daun animate-pulse"></span>
-                        Program Resmi Internal Kampus UBBG 2026
+    <!-- 1. Hero Section: Symmetrical High-Impact Cyber Arena -->
+    <section class="relative overflow-hidden py-16 sm:py-24 md:py-28 bg-gradient-to-b from-white via-brand-canvas/70 to-brand-canvas border-b border-slate-200/80">
+        <!-- Background Subtle Glowing Blobs -->
+        <div class="absolute -top-32 -left-32 w-[500px] h-[500px] bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/3 -right-32 w-[500px] h-[500px] bg-amber-200/35 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+                <!-- Left Column: Copywriting & High-Converting Actions (7 cols) -->
+                <div class="lg:col-span-7 space-y-7 text-center lg:text-left">
+                    <!-- Live Event Badge -->
+                    <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-clay-pill bg-white border border-slate-200/90 shadow-sm text-xs font-bold text-slate-800">
+                        <span class="flex h-2.5 w-2.5 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-accent"></span>
+                        </span>
+                        <span class="tracking-wide uppercase text-[11px] text-slate-700">Kompetisi Resmi Bug Bounty • UBBG Cyber Security 2026</span>
                     </div>
 
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-lumut tracking-tight leading-[1.1]">
-                        Temukan celah sebelum orang lain menemukannya.
+                    <!-- Main Dynamic Headline -->
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12]">
+                        Tantang Skilmu, Singkap Celahnya, <br class="hidden sm:inline"/>
+                        <span class="bg-gradient-to-r from-brand-primary via-indigo-600 to-brand-accent bg-clip-text text-transparent">
+                            Rebut Gelar Peneliti Keamanan Terbaik!
+                        </span>
                     </h1>
 
-                    <p class="text-lg text-abu-batu max-w-2xl leading-relaxed">
-                        Ajang kompetisi pengujian keamanan siber kolaboratif internal mahasiswa Universitas Bina Bangsa Getsempena. Cari, laporkan, dan bantu amankan ekosistem web kampus secara etis.
+                    <!-- Authoritative & Inviting Subtitle -->
+                    <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+                        <strong>VulnHunt</strong> adalah arena resmi <em>ethical hacking</em> dan crowdsourced bug bounty mahasiswa <strong>Universitas Bina Bangsa Getsempena</strong>. Uji ketahanan sistem informasi kampus secara legal, asah portofolio keamanan siber standar industri, dan raih total hadiah pembinaan <strong>Rp 7.000.000,-</strong> terlindungi penuh di bawah payung hukum <em>Safe Harbor</em>.
                     </p>
 
-                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                    <!-- CTA Action Buttons -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
                         @auth
-                            <a href="{{ route('dashboard') }}" class="btn-clay-primary text-base px-8 py-3.5">
-                                Buka Dasbor Ekspedisi
-                            </a>
+                            <x-clay.button href="{{ route('dashboard') }}" variant="primary" size="lg" class="shadow-clay-btn-primary hover:shadow-clay-btn-primary-hover">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                <span>Buka Dasbor Tim</span>
+                            </x-clay.button>
                         @else
-                            <a href="{{ route('register') }}" class="btn-clay-primary text-base px-8 py-3.5">
-                                Daftar Sekarang
-                            </a>
-                            <a href="{{ route('login') }}" class="btn-clay-secondary text-base px-7 py-3.5">
-                                Masuk ke Akun
-                            </a>
+                            <x-clay.button href="{{ route('register') }}" variant="accent" size="lg" class="shadow-clay-btn-accent hover:shadow-clay-btn-accent-hover text-slate-950 font-black">
+                                <svg class="w-5 h-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                </svg>
+                                <span>Daftar Tim Sekarang</span>
+                            </x-clay.button>
+                            <x-clay.button href="{{ route('login') }}" variant="secondary" size="lg">
+                                <span>Masuk Peserta</span>
+                            </x-clay.button>
                         @endauth
-                        <span class="text-xs text-abu-batu block sm:inline font-mono">
-                            Periode: [ISI: November 2026]
-                        </span>
+                        <x-clay.button href="#alur" variant="ghost" size="lg" class="text-slate-600 hover:text-brand-primary">
+                            <span>Panduan Lomba &darr;</span>
+                        </x-clay.button>
+                    </div>
+
+                    <!-- 3 Symmetrical Trust Badges -->
+                    <div class="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-700 font-semibold border-t border-slate-200/80">
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </span>
+                            <span>Safe Harbor 100% Legal</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-100 text-brand-primary flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </span>
+                            <span>Kalkulasi CVSS v3.1 Standar Global</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </span>
+                            <span>Sertifikat & Hadiah Rektorat</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Komposisi Kartu Spesimen Besar (CSS murni tanpa foto stok) -->
+                <!-- Right Column: Precision Cyber Specimen Telemetry Card (5 cols) -->
                 <div class="lg:col-span-5 flex justify-center">
-                    <div class="w-full max-w-md specimen-card specimen-border-critical shadow-clay-card p-6 bg-putih-daun">
-                        <div class="flex items-center justify-between border-b border-abu-batu/15 pb-4 mb-4">
-                            <span class="font-mono text-xs font-bold text-lumut bg-sage px-2.5 py-1 rounded-md">
-                                SPESIMEN #BB-2026-0001
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-severity-critical/15 text-severity-critical">
-                                <span class="w-2 h-2 rounded-full bg-severity-critical"></span>
-                                CRITICAL (CVSS 9.8)
-                            </span>
+                    <div class="w-full max-w-md relative">
+                        <!-- Top Indicator Pill -->
+                        <div class="absolute -top-4 -right-2 z-20 hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-clay-pill bg-white border border-slate-200/90 shadow-clay-card-light text-xs font-bold text-slate-800">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Contoh Simulasi Telemetri</span>
                         </div>
 
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="font-display font-bold text-xl text-lumut leading-snug">
-                                    Pre-Auth Remote Code Execution pada Gateway Mahasiswa
-                                </h3>
-                                <p class="text-xs text-abu-batu mt-1 font-mono">Habitat: portal-demo.ubbg.ac.id/api/v1/auth</p>
+                        <!-- Main Specimen Clay Showcase -->
+                        <div class="clay-card p-6 sm:p-7 relative overflow-hidden border-2 border-white bg-white/95 shadow-clay-card">
+                            <!-- Card Header -->
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs font-extrabold text-brand-primary bg-indigo-50 border border-indigo-200/70 px-3 py-1 rounded-clay-pill">
+                                        CONTOH LAPORAN #VH-2026-0042
+                                    </span>
+                                </div>
+                                <span class="clay-badge bg-rose-50 text-rose-700 border-rose-200 text-xs py-1 px-3">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600"></span>
+                                    CRITICAL (CVSS 9.8)
+                                </span>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3 text-xs py-2 px-3 bg-sage/50 rounded-xl border border-abu-batu/10">
+                            <!-- Specimen Body -->
+                            <div class="space-y-4">
                                 <div>
-                                    <span class="text-abu-batu block text-[10px] uppercase font-mono">Taksonomi CWE</span>
-                                    <span class="font-medium text-lumut">CWE-94 Code Injection</span>
+                                    <h3 class="text-lg font-bold text-slate-900 leading-snug">
+                                        Remote Code Execution via Insecure Deserialization
+                                    </h3>
+                                    <p class="text-xs text-slate-600 font-mono mt-1.5 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                        </svg>
+                                        <span class="truncate">portal-demo.ubbg.ac.id/api/v1/auth (Simulasi)</span>
+                                    </p>
                                 </div>
-                                <div>
-                                    <span class="text-abu-batu block text-[10px] uppercase font-mono">Penemu</span>
-                                    <span class="font-medium text-lumut">Tim CyberHunter UBBG</span>
-                                </div>
-                            </div>
 
-                            <div class="pt-2 flex items-center justify-between text-xs text-abu-batu">
-                                <div class="flex items-center gap-1.5 text-daun font-semibold">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    Tervalidasi & Diberi Poin
+                                <!-- Metadata Grid -->
+                                <div class="grid grid-cols-2 gap-3 text-xs p-3.5 bg-slate-50/90 rounded-clay-md border border-slate-200/80">
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Kategori CWE</span>
+                                        <span class="font-semibold text-slate-800">CWE-502 Deserialization</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Penemu Laporan</span>
+                                        <span class="font-semibold text-slate-800">Tim CyberSquad UBBG (Contoh)</span>
+                                    </div>
                                 </div>
-                                <span class="font-mono font-bold text-lumut">+150 Poin</span>
+
+                                <!-- Mini Triage Flow Pipeline -->
+                                <div class="p-3 bg-indigo-50/50 rounded-clay-md border border-indigo-100/80 text-[11px] space-y-1.5">
+                                    <div class="flex items-center justify-between text-slate-600 font-medium">
+                                        <span>Status Triage Dewan Juri:</span>
+                                        <span class="text-emerald-700 font-bold">100% Terverifikasi</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="flex-1 h-1.5 rounded-full bg-emerald-500"></div>
+                                        <div class="flex-1 h-1.5 rounded-full bg-emerald-500"></div>
+                                        <div class="flex-1 h-1.5 rounded-full bg-brand-primary"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Status & Points Rewarded -->
+                                <div class="pt-2 flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-2 text-emerald-700 font-bold">
+                                        <div class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                        </div>
+                                        <span>Status: RESOLVED</span>
+                                    </div>
+                                    <span class="font-mono font-extrabold text-sm text-brand-primary bg-indigo-50 px-3 py-1 rounded-clay-pill border border-indigo-200/80">
+                                        +150 Poin Tim (Contoh)
+                                    </span>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Floating Stat Pill Bottom Left -->
+                        <div class="absolute -bottom-4 -left-3 z-20 hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-clay-pill bg-white border border-slate-200/90 shadow-clay-card-light text-xs font-semibold text-slate-800">
+                            <span class="w-2.5 h-2.5 rounded-full bg-brand-primary"></span>
+                            <span>Target Scope (Ilustrasi): Web & API Kampus UBBG</span>
                         </div>
                     </div>
                 </div>
@@ -84,223 +177,646 @@
         </div>
     </section>
 
-    <!-- 2 - 7. Tentang, Visi, Misi, Tujuan, Benefit, Hadiah -->
-    <section class="py-16 bg-putih-daun border-b border-abu-batu/20">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-lumut tracking-tight mb-4">
-                    Tentang Program
-                </h2>
-                <p class="text-base text-lumut leading-relaxed">
-                    UBBG VulnHunt adalah wadah resmi pengujian keamanan siber yang diselenggarakan oleh civitas akademika UBBG. Melalui pendekatan crowdsourced security, mahasiswa ditantang untuk menemukan dan melaporkan celah keamanan secara terkoordinasi sebelum disalahgunakan pihak luar.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="p-6 rounded-panel bg-sage/60 border border-abu-batu/20">
-                    <h3 class="font-display font-bold text-xl text-lumut mb-2">Visi</h3>
-                    <p class="text-sm text-lumut leading-relaxed">
-                        Mewujudkan ekosistem digital kampus UBBG yang tangguh, aman, dan berdaya saing melalui partisipasi aktif talenta muda keamanan siber.
-                    </p>
-                </div>
-                <div class="p-6 rounded-panel bg-sage/60 border border-abu-batu/20">
-                    <h3 class="font-display font-bold text-xl text-lumut mb-2">Misi</h3>
-                    <ul class="text-sm text-lumut space-y-1.5 list-disc list-inside">
-                        <li>Mengidentifikasi kerentanan aset digital kampus lebih dini.</li>
-                        <li>Melatih etika pelaporan kerentanan (coordinated disclosure).</li>
-                        <li>Membudayakan praktik riset keamanan siber yang bertanggung jawab.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="text-xl font-bold text-lumut mb-3">Tujuan Program</h3>
-                <p class="text-sm text-lumut leading-relaxed">
-                    Memberikan ruang edukatif yang legal bagi mahasiswa peminat ethical hacking untuk mempraktikkan keterampilan investigasi keamanan, sekaligus memberikan apresiasi nyata atas kontribusi pengamanan aset digital kampus.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                <div>
-                    <h3 class="text-xl font-bold text-lumut mb-3">Benefit untuk Peserta</h3>
-                    <ul class="text-sm text-lumut space-y-2">
-                        <li class="flex items-start gap-2">
-                            <span class="text-daun font-bold">✓</span>
-                            <span>Sertifikat apresiasi resmi sebagai Peneliti Keamanan UBBG.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-daun font-bold">✓</span>
-                            <span>Portofolio nyata pengujian penetrasi terkoordinasi.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-daun font-bold">✓</span>
-                            <span>Perlindungan safe harbor kampus selama mematuhi aturan main.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="p-6 rounded-panel bg-ambar/10 border border-ambar/30">
-                    <h3 class="text-xl font-bold text-lumut mb-2">Hadiah & Apresiasi</h3>
-                    <p class="text-sm text-lumut mb-3">
-                        Total hadiah jutaan rupiah dan plakat penghargaan untuk tim dengan skor kontribusi tertinggi:
-                    </p>
-                    <div class="space-y-1.5 text-xs font-mono">
-                        <div class="flex justify-between border-b border-ambar/20 pb-1">
-                            <span>Juara 1:</span>
-                            <span class="font-bold text-lumut">[ISI: Rp 3.000.000 + Sertifikat]</span>
-                        </div>
-                        <div class="flex justify-between border-b border-ambar/20 pb-1">
-                            <span>Juara 2:</span>
-                            <span class="font-bold text-lumut">[ISI: Rp 2.000.000 + Sertifikat]</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Juara 3:</span>
-                            <span class="font-bold text-lumut">[ISI: Rp 1.000.000 + Sertifikat]</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 8. Alur Ikut Lomba (01 - 06) -->
-    <section class="py-16 bg-sage border-b border-abu-batu/20">
+    <!-- 2. Symmetrical 4-Grid Key Metrics Strip -->
+    <section class="py-10 bg-white border-b border-slate-200/80">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-12">
-                <h2 class="text-3xl font-extrabold text-lumut tracking-tight">
-                    Alur Mengikuti Lomba
-                </h2>
-                <p class="text-sm text-abu-batu mt-2">
-                    Enam tahapan terstruktur mulai dari pendaftaran akun hingga validasi laporan spesimen.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 01 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">01</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Daftar Akun</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Daftar dengan NIM dan email resmi kampus. Verifikasi tautan bertanda tangan yang dikirim ke email Anda.
-                    </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="text-2xl sm:text-3xl font-black text-brand-primary font-mono tracking-tight">Rp 7.000.000</p>
+                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Total Dana Pembinaan</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Apresiasi Finansial Juara</p>
                 </div>
-
-                <!-- 02 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">02</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Bentuk Tim</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Buat tim baru sebagai ketua atau gabung ke tim rekan Anda menggunakan 8 karakter kode undangan unik.
-                    </p>
+                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="text-2xl sm:text-3xl font-black text-emerald-600 font-mono tracking-tight">100% Legal</p>
+                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Payung Safe Harbor</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Dilindungi Kebijakan Kampus</p>
                 </div>
-
-                <!-- 03 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">03</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Setujui Aturan</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Pelajari dan setujui Rules of Engagement (larangan DoS, social engineering, pengunduhan data pribadi).
-                    </p>
+                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="text-2xl sm:text-3xl font-black text-brand-accent font-mono tracking-tight">CVSS v3.1</p>
+                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Standar Global FIRST</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Triage Transparan & Adil</p>
                 </div>
-
-                <!-- 04 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">04</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Unggah NDA</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Unduh template surat perjanjian kerahasiaan ber-ID unik, tanda tangani, lalu unggah untuk diverifikasi panitia.
-                    </p>
-                </div>
-
-                <!-- 05 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">05</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Uji Target Scope</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Setelah NDA disetujui, telusuri daftar target resmi kampus dan cari kerentanan tanpa merusak integritas layanan.
-                    </p>
-                </div>
-
-                <!-- 06 -->
-                <div class="bg-putih-daun p-6 rounded-panel border border-abu-batu/20">
-                    <span class="font-mono text-2xl font-bold text-daun block mb-2">06</span>
-                    <h3 class="font-display font-bold text-lg text-lumut mb-1">Kirim & Triage</h3>
-                    <p class="text-xs text-abu-batu leading-relaxed">
-                        Kirim formulir PoC lengkap dengan kalkulator CVSS. Panitia men-triage temuan dan memberikan poin di papan peringkat.
-                    </p>
+                <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
+                    <p class="text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">E-Sertifikat</p>
+                    <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Kredensial Rektorat</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Portofolio Karir Industri</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 9. Jadwal Singkat & 10. FAQ -->
-    <section class="py-16 bg-putih-daun">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-            <div>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-lumut tracking-tight text-center mb-8">
-                    Jadwal Pelaksanaan Lomba
+    <!-- 3. Profil Kompetisi: Visi, Misi & Pilar Integritas (Balanced 3-Column Symmetrical Grid) -->
+    <section id="tentang" class="py-20 bg-brand-canvas border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+            <div class="max-w-3xl mx-auto text-center">
+                <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200 mb-3">Profil & Landasan Filosofis</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Membangun Kampus yang Tangguh Melalui Riset Etis
                 </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-                    <div class="p-5 rounded-panel bg-sage/50 border border-abu-batu/20">
-                        <span class="text-xs font-mono text-daun font-bold block mb-1">Fase 1</span>
-                        <h4 class="font-bold text-lumut">Pendaftaran & NDA</h4>
-                        <p class="text-xs text-abu-batu mt-1 font-mono">[ISI: 1 - 10 Nov 2026]</p>
+                <p class="text-base text-slate-600 mt-4 leading-relaxed">
+                    <strong>VulnHunt UBBG</strong> adalah jembatan sinergi strategis antara talenta mahasiswa peminat keamanan informasi dengan pengelola infrastruktur sistem kampus. Bersama-sama, kita menciptakan ekosistem teknologi pendidikan yang aman, berdaya saing tinggi, dan berintegritas.
+                </p>
+            </div>
+
+            <!-- Symmetrical 3-Card Balanced Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1: Visi -->
+                <div class="clay-card p-7 flex flex-col justify-between border-t-4 border-t-brand-primary">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-100 text-brand-primary flex items-center justify-center mb-5 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Visi Ketahanan Siber</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Mewujudkan ketahanan ekosistem digital institusi pendidikan tinggi UBBG yang mandiri, adaptif, dan terpercaya melalui pemberdayaan talenta muda siber dalam koridor pengujian yang legal dan bertanggung jawab.
+                        </p>
                     </div>
-                    <div class="p-5 rounded-panel bg-sage/50 border border-abu-batu/20">
-                        <span class="text-xs font-mono text-daun font-bold block mb-1">Fase 2</span>
-                        <h4 class="font-bold text-lumut">Periode Pengujian</h4>
-                        <p class="text-xs text-abu-batu mt-1 font-mono">[ISI: 11 - 25 Nov 2026]</p>
+                    <div class="pt-6 mt-6 border-t border-slate-100 text-xs font-semibold text-brand-primary">
+                        Pilar 01 • Institutional Resilience
                     </div>
-                    <div class="p-5 rounded-panel bg-sage/50 border border-abu-batu/20">
-                        <span class="text-xs font-mono text-daun font-bold block mb-1">Fase 3</span>
-                        <h4 class="font-bold text-lumut">Triage & Pengumuman</h4>
-                        <p class="text-xs text-abu-batu mt-1 font-mono">[ISI: 26 - 30 Nov 2026]</p>
+                </div>
+
+                <!-- Card 2: Misi -->
+                <div class="clay-card p-7 flex flex-col justify-between border-t-4 border-t-brand-accent">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-amber-100 text-brand-accent flex items-center justify-center mb-5 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Misi Riset White-Hat</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Mendeteksi kelemahan sistem sebelum disusupi ancaman eksternal, mengedukasi standar pelaporan kerentanan terkoordinasi (<em>Coordinated Disclosure</em>), serta menanamkan etika peretasan putih di lingkungan perguruan tinggi.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 text-xs font-semibold text-brand-accent">
+                        Pilar 02 • Ethical Standards
+                    </div>
+                </div>
+
+                <!-- Card 3: Tujuan & Portofolio -->
+                <div class="clay-card p-7 flex flex-col justify-between border-t-4 border-t-emerald-600">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-emerald-100 text-emerald-700 flex items-center justify-center mb-5 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-3">Tujuan & Nilai Karir</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Menyediakan laboratorium nyata pengujian keamanan sistem bagi mahasiswa untuk mempraktikkan keterampilan investigasi celah, membuktikan kompetensi teknis, dan meraih pengakuan portofolio resmi.
+                        </p>
+                    </div>
+                    <div class="pt-6 mt-6 border-t border-slate-100 text-xs font-semibold text-emerald-700">
+                        Pilar 03 • Real-World Impact
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Podium Hadiah & Apresiasi Juara (The Grand Champions Podium) -->
+    <section class="py-20 bg-white border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+            <div class="text-center max-w-3xl mx-auto">
+                <span class="clay-badge bg-amber-50 text-amber-900 border-amber-200 mb-3">Penghargaan Bergengsi</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Podium Kehormatan Peneliti Terbaik UBBG 2026
+                </h2>
+                <p class="text-base text-slate-600 mt-3 leading-relaxed">
+                    Total dana pembinaan <strong>Rp 7.000.000,-</strong> beserta trofi dan piagam rektorat dipersembahkan kepada tim dengan akumulasi poin laporan valid tertinggi:
+                </p>
+            </div>
+
+            <!-- Symmetrical 3-Tier Champions Podium -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-5xl mx-auto pt-6">
+                <!-- Juara 2: Silver Stage (Kiri) -->
+                <div class="order-2 md:order-1">
+                    <div class="clay-card p-6 sm:p-7 bg-gradient-to-b from-white to-slate-50 border-2 border-slate-200 shadow-clay-card hover:-translate-y-1 transition-transform">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-4">
+                            <span class="clay-badge bg-slate-100 text-slate-700 border-slate-300 font-bold text-xs">
+                                RUNNER UP
+                            </span>
+                            <span class="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-black text-sm flex items-center justify-center shadow-inner">
+                                2
+                            </span>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900">Juara II</h3>
+                        <p class="text-xs text-slate-600 mt-1">Plakat Perak + Piagam Rektorat UBBG</p>
+                        
+                        <div class="my-5 p-4 rounded-clay-md bg-white border border-slate-200 shadow-inner text-center">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Dana Pembinaan</p>
+                            <p class="text-2xl font-black text-slate-900 font-mono mt-1">Rp 2.250.000,-</p>
+                        </div>
+
+                        <ul class="text-xs text-slate-600 space-y-2">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>E-Sertifikat Juara II Rektorat</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>Publikasi Hall of Fame Peneliti</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Juara 1: Grand Champion (Tengah - Tertinggi & Paling Megah) -->
+                <div class="order-1 md:order-2">
+                    <div class="clay-card p-7 sm:p-8 bg-gradient-to-b from-amber-50/80 via-white to-amber-50/40 border-2 border-amber-300 shadow-clay-card-hover -translate-y-2 hover:-translate-y-3 transition-transform relative overflow-hidden">
+                        <!-- Crown Banner -->
+                        <div class="absolute top-0 right-0 bg-brand-accent text-slate-950 text-[10px] font-black px-4 py-1 rounded-bl-clay-md tracking-widest uppercase">
+                            GRAND CHAMPION
+                        </div>
+
+                        <div class="flex items-center justify-between pb-3 border-b border-amber-200/80 mb-5">
+                            <span class="clay-badge bg-amber-100 text-amber-900 border-amber-300 font-extrabold text-xs">
+                                JUARA UTAMA
+                            </span>
+                            <span class="w-10 h-10 rounded-full bg-amber-400 text-slate-950 font-black text-lg flex items-center justify-center shadow-md">
+                                1
+                            </span>
+                        </div>
+                        <h3 class="text-3xl font-black text-slate-900">Juara I</h3>
+                        <p class="text-xs text-amber-900 font-semibold mt-1">Trophy Eksklusif Rektorat + Piagam Emas Kehormatan</p>
+                        
+                        <div class="my-6 p-5 rounded-clay-md bg-white border-2 border-amber-200 shadow-clay-card-light text-center">
+                            <p class="text-xs font-bold uppercase tracking-wider text-amber-800">Dana Pembinaan Utama</p>
+                            <p class="text-3xl sm:text-4xl font-black text-brand-primary font-mono mt-1">Rp 3.500.000,-</p>
+                        </div>
+
+                        <ul class="text-xs text-slate-700 font-medium space-y-2.5">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>Trophy Bergilir Juara Umum Rektorat</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>Surat Rekomendasi Tim Riset Khusus</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>Sorotan Utama di Portal Resmi Kampus</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Juara 3: Bronze Stage (Kanan) -->
+                <div class="order-3">
+                    <div class="clay-card p-6 sm:p-7 bg-gradient-to-b from-white to-amber-50/20 border-2 border-amber-900/20 shadow-clay-card hover:-translate-y-1 transition-transform">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-4">
+                            <span class="clay-badge bg-amber-900/10 text-amber-900 border-amber-900/30 font-bold text-xs">
+                                3RD PLACE
+                            </span>
+                            <span class="w-8 h-8 rounded-full bg-amber-700 text-white font-black text-sm flex items-center justify-center shadow-inner">
+                                3
+                            </span>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900">Juara III</h3>
+                        <p class="text-xs text-slate-600 mt-1">Plakat Perunggu + Piagam Rektorat UBBG</p>
+                        
+                        <div class="my-5 p-4 rounded-clay-md bg-white border border-slate-200 shadow-inner text-center">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Dana Pembinaan</p>
+                            <p class="text-2xl font-black text-slate-900 font-mono mt-1">Rp 1.250.000,-</p>
+                        </div>
+
+                        <ul class="text-xs text-slate-600 space-y-2">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>E-Sertifikat Juara III Rektorat</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <span>Publikasi Hall of Fame Peneliti</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-lumut tracking-tight text-center mb-8">
-                    Pertanyaan Umum (FAQ)
+            <!-- Bottom Facility Strip -->
+            <div class="max-w-4xl mx-auto p-5 rounded-clay-md bg-slate-50/80 border border-slate-200 text-center text-xs text-slate-600">
+                <span class="font-bold text-slate-800">Fasilitas Seluruh Peserta:</span> Seluruh tim yang berhasil mengirimkan minimal satu laporan tervalidasi sah akan menerima <strong>E-Sertifikat Resmi Peneliti Keamanan Siber</strong> dari Rektorat UBBG dan dicantumkan pada Hall of Fame kampus.
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Benefit & Nilai Tambah Peserta (Symmetrical 4-Column Balanced Grid) -->
+    <section class="py-20 bg-brand-canvas border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="clay-badge bg-emerald-50 text-emerald-800 border-emerald-200 mb-3">Nilai Tambah & Rekognisi</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Mengapa Anda Wajib Bergabung di VulnHunt?
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Siapa saja yang boleh berpartisipasi?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Seluruh mahasiswa aktif Universitas Bina Bangsa Getsempena (UBBG) yang memiliki NIM dan email resmi kampus.
+                <p class="text-sm text-slate-600 mt-2">
+                    Keikutsertaan Anda bukan sekadar kompetisi biasa, melainkan batu loncatan karir di industri keamanan informasi.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Benefit 1 -->
+                <div class="clay-card p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Payung Safe Harbor</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Bebas dari risiko pelanggaran hukum. Seluruh aktivitas riset yang mematuhi Rules of Engagement dilindungi penuh oleh kebijakan safe harbor institusi kampus.
                         </p>
                     </div>
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Berapa jumlah anggota dalam satu tim?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Minimal 2 orang dan maksimal 4 orang per tim. Setiap mahasiswa hanya boleh terdaftar di 1 tim.
-                        </p>
-                    </div>
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Mengapa NDA wajib diunggah per anggota?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Perjanjian kerahasiaan mengikat individu secara hukum dan etis untuk tidak mempublikasikan celah sebelum diperbaiki kampus.
-                        </p>
-                    </div>
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Apakah pemindai otomatis diperbolehkan?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Pemindaian otomatis berskala tinggi (DDoS/aggressive brute force) dilarang keras karena dapat mengganggu operasional akademik.
-                        </p>
-                    </div>
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Bagaimana jika ada laporan duplikat?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Laporan pertama yang masuk berdasarkan waktu server (`submitted_at`) dan berstatus valid yang akan menerima poin penuh.
-                        </p>
-                    </div>
-                    <div class="p-5 rounded-panel bg-sage/30 border border-abu-batu/15">
-                        <h4 class="font-bold text-lumut mb-1">Kapan saya bisa mengakses daftar scope?</h4>
-                        <p class="text-xs text-abu-batu leading-relaxed">
-                            Halaman scope dan formulir laporan akan otomatis terbuka segera setelah pengajuan NDA Anda disetujui admin.
-                        </p>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-emerald-700">
+                        100% Terlindungi Hukum
                     </div>
                 </div>
+
+                <!-- Benefit 2 -->
+                <div class="clay-card p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-100 text-brand-primary flex items-center justify-center mb-4 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Kredensial Resmi Rektorat</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Menerima e-sertifikat bernomor registrasi resmi dari Rektorat UBBG yang menjadi bukti otentik keahlian teknis Anda saat melamar pekerjaan di industri siber.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Sertifikasi Portofolio
+                    </div>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="clay-card p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-amber-100 text-amber-800 flex items-center justify-center mb-4 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Pengujian Sistem Nyata</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Bukan sekadar simulasi CTF buatan! Anda menguji sistem web, API, dan infrastruktur nyata yang melayani ribuan civitas akademika UBBG setiap hari.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-amber-800">
+                        Real-World Penetration
+                    </div>
+                </div>
+
+                <!-- Benefit 4 -->
+                <div class="clay-card p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-purple-100 text-purple-700 flex items-center justify-center mb-4 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Feedback & Mentoring Juri</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Setiap laporan temuan yang Anda kirimkan akan ditinjau langsung oleh dewan juri ahli dengan catatan konstruktif untuk meningkatkan analisis keamanan Anda.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-purple-700">
+                        Triage Transparan & Adil
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Alur Lomba: 5 Tahapan Terstruktur (Connected Stepped Flow) -->
+    <section id="alur" class="py-20 bg-white border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200 mb-3">Tahapan Partisipasi</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Alur Mengikuti Kompetisi
+                </h2>
+                <p class="text-sm text-slate-600 mt-2">
+                    5 langkah terstruktur dan terkoordinasi dari registrasi hingga penganugerahan di podium juara.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <!-- Step 01 -->
+                <div class="clay-card p-6 flex flex-col justify-between group hover:shadow-clay-card-hover transition-all">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-50 border border-indigo-200/80 text-brand-primary font-mono font-black text-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                            01
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Daftar Akun</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Registrasi menggunakan NIM aktif dan email resmi kampus UBBG. Lakukan verifikasi email untuk mengaktifkan akun peserta.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Email @ubbg.ac.id
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="clay-card p-6 flex flex-col justify-between group hover:shadow-clay-card-hover transition-all">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-50 border border-indigo-200/80 text-brand-primary font-mono font-black text-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                            02
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Bentuk Tim</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Buat tim baru sebagai ketua atau bergabung menggunakan kode undangan 8-karakter unik dari rekan Anda (beranggotakan 2–4 mahasiswa).
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Skuad 2 - 4 Mahasiswa
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="clay-card p-6 flex flex-col justify-between group hover:shadow-clay-card-hover transition-all">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-50 border border-indigo-200/80 text-brand-primary font-mono font-black text-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                            03
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Setujui Rules</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Pahami batasan etika mutlak: larangan DoS/DDoS, perusakan integritas data, pengunduhan PII, maupun serangan rekayasa sosial.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Rules of Engagement
+                    </div>
+                </div>
+
+                <!-- Step 04 -->
+                <div class="clay-card p-6 flex flex-col justify-between group hover:shadow-clay-card-hover transition-all">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-50 border border-indigo-200/80 text-brand-primary font-mono font-black text-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                            04
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Unggah NDA</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Unduh template PDF ber-ID unik yang terisi otomatis, bubuhkan tanda tangan, dan unggah kembali untuk disetujui panitia admin.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Safe Harbor Legalitas
+                    </div>
+                </div>
+
+                <!-- Step 05 -->
+                <div class="clay-card p-6 flex flex-col justify-between group hover:shadow-clay-card-hover transition-all">
+                    <div>
+                        <div class="w-12 h-12 rounded-clay-md bg-indigo-50 border border-indigo-200/80 text-brand-primary font-mono font-black text-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary group-hover:text-white transition-colors">
+                            05
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-2">Uji & Lapor</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Akses scope target resmi. Kirim bukti konsep kerentanan (PoC) lengkap dengan vector CVSS v3.1 untuk dinilai oleh dewan juri.
+                        </p>
+                    </div>
+                    <div class="pt-4 mt-4 border-t border-slate-100 text-[11px] font-semibold text-brand-primary">
+                        Triage & Papan Skor
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Jadwal Pelaksanaan: 3 Milestone Simetris -->
+    <section id="jadwal" class="py-20 bg-brand-canvas border-b border-slate-200/80">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200 mb-3">Timeline & Milestone</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Jadwal Resmi Pelaksanaan Lomba
+                </h2>
+                <p class="text-sm text-slate-600 mt-2">
+                    Catat tanggal-tanggal penting agar tim Anda dapat mempersiapkan strategi pengujian secara optimal.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Fase 1 -->
+                <div class="clay-card p-6 text-center border-t-4 border-t-brand-primary flex flex-col justify-between">
+                    <div>
+                        <span class="font-mono text-xs font-bold text-brand-primary bg-indigo-50 px-3 py-1 rounded-clay-pill border border-indigo-200/80 inline-block mb-3">
+                            Fase 01 • Pembukaan
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Registrasi & Verifikasi NDA</h3>
+                        <p class="text-xs text-slate-600 mb-4">Pembentukan tim dan pengesahan dokumen integritas</p>
+                    </div>
+                    <div class="p-3.5 rounded-clay-md bg-white border border-slate-200 font-mono font-extrabold text-sm text-brand-primary shadow-inner">
+                        10 – 18 November 2026
+                    </div>
+                </div>
+
+                <!-- Fase 2 -->
+                <div class="clay-card p-6 text-center border-t-4 border-t-brand-accent flex flex-col justify-between">
+                    <div>
+                        <span class="font-mono text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-clay-pill border border-amber-300 inline-block mb-3">
+                            Fase 02 • Invasion Window
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Periode Pengujian Celah</h3>
+                        <p class="text-xs text-slate-600 mb-4">Eksploitasi target scope resmi & pengiriman laporan temuan</p>
+                    </div>
+                    <div class="p-3.5 rounded-clay-md bg-amber-50/70 border border-amber-300 font-mono font-extrabold text-sm text-amber-900 shadow-inner">
+                        19 – 30 November 2026
+                    </div>
+                </div>
+
+                <!-- Fase 3 -->
+                <div class="clay-card p-6 text-center border-t-4 border-t-emerald-600 flex flex-col justify-between">
+                    <div>
+                        <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-clay-pill border border-emerald-300 inline-block mb-3">
+                            Fase 03 • Awarding
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Final Triage & Pengumuman</h3>
+                        <p class="text-xs text-slate-600 mb-4">Validasi skor akhir, penetapan juara, dan penganugerahan</p>
+                    </div>
+                    <div class="p-3.5 rounded-clay-md bg-white border border-slate-200 font-mono font-extrabold text-sm text-emerald-800 shadow-inner">
+                        1 – 5 Desember 2026
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. FAQ Accordion: Symmetrical & Accessible -->
+    <section id="faq" class="py-20 bg-white border-b border-slate-200/80" x-data="{ openFaq: null }">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200 mb-3">Tanya Jawab & Aturan Teknis</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Pertanyaan yang Sering Diajukan
+                </h2>
+                <p class="text-sm text-slate-600 mt-2">
+                    Informasi penting seputar teknis pengujian, legalitas safe harbor, dan penilaian kompetisi.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 1 ? null : 1)"
+                        :aria-expanded="openFaq === 1"
+                        aria-controls="faq-ans-1"
+                    >
+                        <span class="text-sm sm:text-base">1. Siapa saja yang berhak mengikuti kompetisi VulnHunt?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 1 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-1" x-show="openFaq === 1" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Seluruh mahasiswa aktif Universitas Bina Bangsa Getsempena (UBBG) yang memiliki NIM terdaftar dan alamat email resmi kampus (@ubbg.ac.id). Peserta wajib membentuk tim beranggotakan 2 hingga 4 orang. Mahasiswa dari semua program studi diperbolehkan berpartisipasi.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 2 ? null : 2)"
+                        :aria-expanded="openFaq === 2"
+                        aria-controls="faq-ans-2"
+                    >
+                        <span class="text-sm sm:text-base">2. Apa itu Safe Harbor dan mengapa peserta wajib menandatangani NDA?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 2 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-2" x-show="openFaq === 2" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Safe Harbor adalah jaminan perlindungan hukum resmi dari institusi UBBG bahwa seluruh aktivitas pengujian keamanan Anda diakui legal dan tidak akan dituntut secara pidana maupun akademik, selama Anda mematuhi Rules of Engagement. Dokumen NDA (Non-Disclosure Agreement) mengikat peserta untuk menjaga kerahasiaan celah agar tidak dibocorkan ke publik sebelum diperbaiki oleh pengelola sistem.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 3 ? null : 3)"
+                        :aria-expanded="openFaq === 3"
+                        aria-controls="faq-ans-3"
+                    >
+                        <span class="text-sm sm:text-base">3. Apakah diperbolehkan menggunakan alat pemindai otomatis (scanner)?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 3 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-3" x-show="openFaq === 3" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Pemindaian otomatis berskala masif (seperti vulnerability network scanner berkecepatan tinggi) yang berpotensi menyebabkan Denial of Service (DoS) atau kelumpuhan server dilarang keras. Pengujian difokuskan pada analisis kerentanan manual, logika bisnis, otentikasi, injeksi SQL/XSS, dan miskonfigurasi dengan lalu lintas terkontrol (rate-limited).
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 4 ? null : 4)"
+                        :aria-expanded="openFaq === 4"
+                        aria-controls="faq-ans-4"
+                    >
+                        <span class="text-sm sm:text-base">4. Bagaimana jika dua tim melaporkan celah yang sama (duplikat)?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 4 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-4" x-show="openFaq === 4" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Prinsip <em>first-come, first-served</em> diterapkan secara ketat berdasarkan stempel waktu server (submitted_at) yang tidak dapat dimanipulasi. Laporan pertama yang masuk dan diverifikasi valid oleh dewan juri akan mendapatkan poin penuh, sedangkan laporan sejenis berikutnya akan diklasifikasikan sebagai duplikat.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 5 ? null : 5)"
+                        :aria-expanded="openFaq === 5"
+                        aria-controls="faq-ans-5"
+                    >
+                        <span class="text-sm sm:text-base">5. Berapa batas kuota laporan aktif yang dimiliki setiap tim?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 5 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-5" x-show="openFaq === 5" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Setiap tim memiliki kuota laporan aktif bersamaan (default 5 laporan aktif berstatus submitted atau in_review). Kebijakan ini mendorong peserta untuk menyusun laporan temuan berkualitas tinggi dan mencegah spam laporan berulang. Begitu laporan diputuskan valid, invalid, atau duplikat oleh juri, kuota tim akan langsung terbuka kembali.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="clay-card-light overflow-hidden border border-slate-200/90 transition-all">
+                    <button
+                        type="button"
+                        class="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-brand-primary focus:outline-none focus:bg-slate-50"
+                        @click="openFaq = (openFaq === 6 ? null : 6)"
+                        :aria-expanded="openFaq === 6"
+                        aria-controls="faq-ans-6"
+                    >
+                        <span class="text-sm sm:text-base">6. Apakah mahasiswa pemula di bidang keamanan siber boleh ikut mendaftar?</span>
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200" :class="openFaq === 6 ? 'rotate-180 text-brand-primary' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div id="faq-ans-6" x-show="openFaq === 6" x-collapse class="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100">
+                        Sangat dianjurkan! VulnHunt dirancang sebagai ruang edukatif yang suportif. Anda dapat membentuk tim kolaboratif bersama rekan yang memiliki keahlian saling melengkapi (misalnya pemrograman web, jaringan, dan analisis sistem). Kategori kerentanan mencakup tingkat Low dan Medium yang ramah bagi peneliti pemula.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Symmetrical High-Impact Final Call to Action -->
+    <section class="py-20 bg-gradient-to-br from-slate-950 via-brand-primary to-indigo-950 text-white relative overflow-hidden">
+        <!-- Background Lighting -->
+        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-accent/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-7">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-clay-pill bg-white/10 border border-white/20 text-xs font-bold text-amber-300">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                <span>Pendaftaran Gelombang I Resmi Dibuka</span>
+            </div>
+
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+                Siap Menjadi Garda Terdepan <br class="hidden sm:inline"/>
+                <span class="bg-gradient-to-r from-amber-300 via-amber-200 to-white bg-clip-text text-transparent">
+                    Ketahanan Siber Kampus UBBG?
+                </span>
+            </h2>
+
+            <p class="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
+                Bentuk skuad tim Anda sekarang, tandatangani perjanjian kerahasiaan safe harbor, dan raih kehormatan tertinggi sebagai Peneliti Keamanan Siber Terbaik UBBG 2026.
+            </p>
+
+            <div class="pt-4 flex flex-wrap justify-center gap-4">
+                @auth
+                    <x-clay.button href="{{ route('dashboard') }}" variant="accent" size="lg" class="shadow-clay-btn-accent text-slate-950 font-black px-8 py-4 text-base">
+                        <span>Buka Dasbor Laporan &rarr;</span>
+                    </x-clay.button>
+                @else
+                    <x-clay.button href="{{ route('register') }}" variant="accent" size="lg" class="shadow-clay-btn-accent text-slate-950 font-black px-8 py-4 text-base">
+                        <span>Daftar Tim Sekarang &rarr;</span>
+                    </x-clay.button>
+                    <x-clay.button href="{{ route('login') }}" variant="secondary" size="lg" class="bg-white/10 text-white border-white/30 hover:bg-white/20 px-8 py-4 text-base">
+                        <span>Masuk ke Akun Peserta</span>
+                    </x-clay.button>
+                @endauth
             </div>
         </div>
     </section>

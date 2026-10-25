@@ -86,10 +86,25 @@
         }
     </style>
 </head>
+@php
+    $logoPdfPath = public_path('brand/logo-pdf.png');
+    $logoBase64 = file_exists($logoPdfPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPdfPath)) : null;
+@endphp
 <body>
     <div class="header">
-        <h1>Universitas Bina Bangsa Getsempena (UBBG)</h1>
-        <h2>Panitia Pelaksana Lomba Bug Bounty Kampus (UBBG VulnHunt 2026)</h2>
+        <table style="width: 100%; border: none; margin-bottom: 0;">
+            <tr>
+                @if($logoBase64)
+                    <td style="width: 65px; vertical-align: middle; text-align: left; padding: 0;">
+                        <img src="{{ $logoBase64 }}" style="width: 55px; height: auto;" alt="Logo VulnHunt">
+                    </td>
+                @endif
+                <td style="vertical-align: middle; text-align: center; padding: 0;">
+                    <h1 style="font-size: 14pt; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">Universitas Bina Bangsa Getsempena</h1>
+                    <h2 style="font-size: 11pt; margin: 3px 0 0 0; color: #253AA1; font-weight: bold;">Panitia Pelaksana Lomba Bug Bounty Kampus (VulnHunt 2026)</h2>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="doc-meta">

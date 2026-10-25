@@ -9,7 +9,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -26,8 +25,24 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('VulnHunt')
+            ->brandLogo(asset('brand/logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('brand/favicon.ico'))
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => [
+                    50 => '#eef2ff',
+                    100 => '#e0e7ff',
+                    200 => '#c7d2fe',
+                    300 => '#a5b4fc',
+                    400 => '#818cf8',
+                    500 => '#253AA1',
+                    600 => '#1e2d7d',
+                    700 => '#172361',
+                    800 => '#111a47',
+                    900 => '#0c1230',
+                    950 => '#060918',
+                ],
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

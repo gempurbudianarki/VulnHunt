@@ -1,15 +1,18 @@
 <x-guest-layout>
-    <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-xl mx-auto">
-        <div class="specimen-card p-8 bg-putih-daun shadow-clay-card">
+    <div class="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-xl mx-auto">
+        <div class="clay-card p-7 sm:p-9 relative">
             <div class="text-center mb-6">
-                <span class="font-mono text-xs font-bold text-ambar bg-lumut/5 px-3 py-1 rounded-full uppercase tracking-wider">
-                    Registrasi Peneliti Mahasiswa
+                <div class="w-12 h-12 mx-auto mb-3 rounded-clay-md bg-indigo-50 border border-indigo-100 p-1.5 shadow-sm flex items-center justify-center">
+                    <img src="{{ asset('brand/logo.png') }}" alt="VulnHunt" class="w-full h-full object-contain">
+                </div>
+                <span class="clay-badge bg-indigo-50 text-brand-primary border-indigo-200 text-[10px] uppercase font-bold tracking-wider">
+                    Registrasi Mahasiswa
                 </span>
-                <h2 class="text-2xl font-bold font-display text-lumut mt-2">
-                    Daftar Akun Peserta
+                <h2 class="text-2xl font-extrabold text-slate-900 mt-2 tracking-tight">
+                    Daftar Akun VulnHunt
                 </h2>
-                <p class="text-xs text-abu-batu mt-1">
-                    Gunakan identitas dan email kampus resmi UBBG untuk keperluan sertifikasi dan verifikasi NDA.
+                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Gunakan identitas dan email resmi kampus UBBG untuk keperluan sertifikasi dan verifikasi NDA.
                 </p>
             </div>
 
@@ -17,112 +20,112 @@
                 @csrf
 
                 <div>
-                    <label for="name" class="block text-xs font-semibold text-lumut mb-1">
-                        Nama Lengkap (Sesuai KTM)
+                    <label for="name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Nama Lengkap (Sesuai KTM) <span class="text-rose-500">*</span>
                     </label>
                     <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
-                           class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut"
+                           class="clay-input @error('name') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror"
                            placeholder="Contoh: Muhammad Fajar">
                     @error('name')
-                        <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                        <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="nim" class="block text-xs font-semibold text-lumut mb-1">
-                            Nomor Induk Mahasiswa (NIM)
+                        <label for="nim" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            NIM <span class="text-rose-500">*</span>
                         </label>
                         <input id="nim" type="text" name="nim" value="{{ old('nim') }}" required
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut font-mono"
+                               class="clay-input font-mono @error('nim') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror"
                                placeholder="Contoh: 210102001">
                         @error('nim')
-                            <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="phone" class="block text-xs font-semibold text-lumut mb-1">
-                            Nomor WhatsApp / HP Aktif
+                        <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            WhatsApp / No HP <span class="text-rose-500">*</span>
                         </label>
                         <input id="phone" type="text" name="phone" value="{{ old('phone') }}" required
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut"
+                               class="clay-input @error('phone') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror"
                                placeholder="Contoh: 081234567890">
                         @error('phone')
-                            <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <div>
-                    <label for="email" class="block text-xs font-semibold text-lumut mb-1">
-                        Email Resmi Kampus
+                    <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Email Resmi Kampus <span class="text-rose-500">*</span>
                     </label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required
-                           class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut font-mono"
+                           class="clay-input font-mono @error('email') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror"
                            placeholder="nim@ubbg.ac.id">
-                    <p class="text-[11px] text-abu-batu mt-1">Wajib menggunakan domain @ubbg.ac.id untuk validasi status kemahasiswaan.</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Wajib menggunakan domain @ubbg.ac.id untuk validasi kemahasiswaan.</p>
                     @error('email')
-                        <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                        <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="study_program" class="block text-xs font-semibold text-lumut mb-1">
-                            Program Studi
+                        <label for="study_program" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Program Studi <span class="text-rose-500">*</span>
                         </label>
                         <input id="study_program" type="text" name="study_program" value="{{ old('study_program') }}" required
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut"
+                               class="clay-input @error('study_program') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror"
                                placeholder="Contoh: Ilmu Komputer">
                         @error('study_program')
-                            <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="cohort_year" class="block text-xs font-semibold text-lumut mb-1">
-                            Tahun Angkatan
+                        <label for="cohort_year" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Tahun Angkatan <span class="text-rose-500">*</span>
                         </label>
                         <input id="cohort_year" type="number" name="cohort_year" value="{{ old('cohort_year', date('Y')) }}" required min="2015" max="{{ date('Y') + 1 }}"
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut font-mono">
+                               class="clay-input font-mono @error('cohort_year') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror">
                         @error('cohort_year')
-                            <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
-                        <label for="password" class="block text-xs font-semibold text-lumut mb-1">
-                            Kata Sandi (Min. 10 Karakter)
+                        <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Kata Sandi (Min. 10) <span class="text-rose-500">*</span>
                         </label>
                         <input id="password" type="password" name="password" required autocomplete="new-password"
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut">
+                               class="clay-input @error('password') border-rose-400 focus:border-rose-500 focus:ring-rose-400/20 bg-rose-50/30 @enderror">
                         @error('password')
-                            <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
+                            <p class="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="password_confirmation" class="block text-xs font-semibold text-lumut mb-1">
-                            Konfirmasi Kata Sandi
+                        <label for="password_confirmation" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Konfirmasi Sandi <span class="text-rose-500">*</span>
                         </label>
                         <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                               class="w-full px-3.5 py-2.5 rounded-input bg-sage/30 border border-abu-batu/20 focus:border-daun focus:ring focus:ring-daun/20 text-sm text-lumut">
+                               class="clay-input">
                     </div>
                 </div>
 
-                <div class="pt-4">
-                    <button type="submit" class="w-full btn-clay-primary py-3">
-                        Daftar Akun & Lanjutkan
+                <div class="pt-3">
+                    <button type="submit" class="btn-clay-primary w-full py-3 text-sm">
+                        Daftar Akun Tim &rarr;
                     </button>
                 </div>
             </form>
 
-            <div class="mt-6 pt-4 border-t border-abu-batu/15 text-center text-xs text-abu-batu">
+            <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-500">
                 Sudah memiliki akun?
-                <a href="{{ route('login') }}" class="text-daun font-semibold hover:underline">
+                <a href="{{ route('login') }}" class="font-bold text-brand-primary hover:underline ml-1">
                     Masuk di sini
                 </a>
             </div>

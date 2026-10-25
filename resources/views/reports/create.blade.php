@@ -4,22 +4,22 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="font-mono text-xs font-bold text-ambar bg-lumut/5 px-3 py-1 rounded-full uppercase tracking-wider">
+                    <span class="font-mono text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200/80 px-3 py-1 rounded-clay-pill uppercase tracking-wider">
                         Koleksi Baru Spesimen Celah
                     </span>
-                    <span class="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-full bg-daun/10 text-daun border border-daun/20">
+                    <span class="font-mono text-xs font-semibold px-2.5 py-0.5 rounded-clay-pill bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                         Sisa Kuota: {{ $team->remainingQuota() }} Slot
                     </span>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-lumut tracking-tight mt-1">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
                     Formulir Pengajuan Laporan Temuan
                 </h1>
-                <p class="text-xs text-abu-batu mt-1">
+                <p class="text-xs text-slate-600 mt-1">
                     Lengkapi seluruh rincian langkah reproduksi dan kalkulasi skor CVSS v3.1 sebelum mengirim laporan.
                 </p>
             </div>
             <a href="{{ route('reports.index') }}"
-               class="inline-flex items-center text-xs font-semibold text-abu-batu hover:text-lumut">
+               class="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-900">
                 &larr; Kembali ke Daftar Laporan
             </a>
         </div>
@@ -364,15 +364,15 @@
 
                 <!-- Unggah Bukti (Lampiran) -->
                 <div>
-                    <label class="block text-xs font-semibold text-lumut mb-1">
+                    <label for="attachments" class="block text-xs font-semibold text-slate-800 mb-1">
                         Berkas Lampiran Bukti Eksploitasi (Maksimal 8 Berkas, 25 MB per Berkas)
                     </label>
-                    <p class="text-[11px] text-abu-batu mb-2">
+                    <p class="text-[11px] text-slate-600 mb-2">
                         Format aman yang didukung: PNG, JPG, WEBP, MP4, WEBM, PDF, TXT, MD. Format SVG ditolak mutlak.
                     </p>
-                    <input type="file" name="attachments[]" multiple
+                    <input id="attachments" type="file" name="attachments[]" multiple
                            accept=".png,.jpg,.jpeg,.webp,.mp4,.webm,.pdf,.txt,.md"
-                           class="w-full text-xs text-abu-batu file:mr-4 file:py-2.5 file:px-4 file:rounded-btn file:border-0 file:text-xs file:font-semibold file:bg-daun file:text-white hover:file:bg-daun/90 file:cursor-pointer border border-abu-batu/20 rounded-input p-2 bg-sage/20">
+                           class="w-full text-xs text-slate-700 file:mr-4 file:py-2.5 file:px-4 file:rounded-clay-pill file:border-0 file:text-xs file:font-semibold file:bg-brand-primary file:text-white hover:file:bg-brand-primary-hover file:cursor-pointer border border-slate-200 rounded-clay-md p-2 bg-slate-50">
                     @error('attachments')
                         <p class="text-xs text-severity-critical mt-1">{{ $message }}</p>
                     @enderror
@@ -424,7 +424,7 @@
             <!-- Tombol Kirim -->
             <div class="flex items-center justify-end gap-4">
                 <a href="{{ route('reports.index') }}"
-                   class="py-3 px-6 rounded-btn font-semibold text-abu-batu hover:text-lumut transition text-xs">
+                   class="py-3 px-6 rounded-clay-pill font-semibold text-slate-600 hover:text-slate-900 transition text-xs">
                     Batalkan
                 </a>
                 <button type="submit"
