@@ -183,3 +183,15 @@ test('real http: mode hidden dan hidden_until_end lewat url langsung tidak membo
     expect($jsonRes3->json('data'))->not->toBeEmpty();
     expect($jsonRes3->json('data.0.team_name'))->toBe('Tim Rahasia Peringkat 1');
 });
+
+test('DemoAccountsSeeder melempar RuntimeException pada environment production dan aman tanpa kredensial hardcode', function () {
+    app()->detectEnvironment(fn () => 'production');
+
+    try {
+        expect(fn () => (new \Database\Seeders\DemoAccountsSeeder)->run())
+            ->toThrow(\RuntimeException::class, 'DemoAccountsSeeder DILARANG dijalankan pada environment production!');
+    } finally {
+        app()->detectEnvironment(fn () => 'testing');
+    }
+});
+

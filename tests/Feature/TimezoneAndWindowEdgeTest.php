@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Announcement;
 use App\Models\Scope;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
 use App\Models\VulnerabilityType;
 use App\Services\CompetitionSettings;
+use App\Services\LeaderboardService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -29,24 +31,92 @@ class TimezoneAndWindowEdgeTest extends TestCase
         $this->settings = app(CompetitionSettings::class);
     }
 
-    public function test_input_tanggal_wib_disimpan_dalam_utc_dan_dibaca_kembali_dalam_wib(): void
+    public function test_input_tanggal_wib_disimpan_dan_dibaca_murni_dalam_wib_tanpa_konversi_utc(): void
     {
         // Admin memasukkan waktu dalam zona WIB (Asia/Jakarta)
         $wibInput = '2026-10-25 09:00:00';
         $this->settings->set('registration_open_at', $wibInput);
 
-        // Di database/storage mentah harus tersimpan sebagai UTC (02:00:00)
-        $rawUtc = $this->settings->get('registration_open_at');
-        $this->assertEquals('2026-10-25 02:00:00', $rawUtc);
+        // Di database/storage mentah harus tersimpan murni dalam WIB (2026-10-25 09:00:00), tanpa offset UTC
+        $rawWib = $this->settings->get('registration_open_at');
+        $this->assertEquals('2026-10-25 09:00:00', $rawWib);
 
-        // Helper getWib harus mengembalikan Carbon pada zona Asia/Jakarta
-        $wibCarbon = $this->settings->getWib('registration_open_at');
-        $this->assertNotNull($wibCarbon);
-        $this->assertEquals('Asia/Jakarta', $wibCarbon->timezoneName);
-        $this->assertEquals('2026-10-25 09:00:00', $wibCarbon->format('Y-m-d H:i:s'));
+        // Verifikasi langsung di tabel competition_settings
+        $dbRecord = \App\Models\CompetitionSetting::where('key', 'registration_open_at')->first();
+        $this->assertNotNull($dbRecord);
+        $this->assertEquals('2026-10-25 09:00:00', $dbRecord->value['value']);
     }
 
-    public function test_batas_jendela_pendaftaran_pada_tepi_menit_wib_via_http_request(): void
+    public function test_pengumuman_dengan_published_at_sekarang_plus_1_menit_tidak_tampil_lalu_tampil_setelah_waktu_lewat(): void
+    {
+        $participant = User::factory()->create([
+            'email' => 'peserta.wib@ubbg.ac.id',
+            'email_verified_at' => now(),
+            'rules_accepted_version' => '1',
+            'is_active' => true,
+        ]);
+        $participant->assignRole('participant');
+
+        // Tetapkan waktu awal uji: 10:00:00 WIB
+        Carbon::setTestNow(Carbon::parse('2026-10-25 10:00:00', 'Asia/Jakarta'));
+
+        // Buat pengumuman dengan published_at = sekarang + 1 menit (10:01:00 WIB)
+        $announcement = Announcement::create([
+            'title' => 'Pengumuman Rilis Terjadwal 1 Menit',
+            'body' => 'Pengumuman ini baru boleh dibaca peserta setelah tepat 1 menit.',
+            'is_pinned' => false,
+            'published_at' => Carbon::now()->addMinute(), // 10:01:00 WIB
+        ]);
+
+        // 1. Pada waktu 10:00:00 WIB -> Pengumuman TIDAK TAMPIL
+        $resEarly = $this->actingAs($participant)->get(route('announcements.index'));
+        $resEarly->assertSuccessful();
+        $resEarly->assertDontSee('Pengumuman Rilis Terjadwal 1 Menit');
+
+        // 2. Pada waktu 10:00:59 WIB (1 detik sebelum rilis) -> Pengumuman masih TIDAK TAMPIL
+        Carbon::setTestNow(Carbon::parse('2026-10-25 10:00:59', 'Asia/Jakarta'));
+        $resBefore = $this->actingAs($participant)->get(route('announcements.index'));
+        $resBefore->assertSuccessful();
+        $resBefore->assertDontSee('Pengumuman Rilis Terjadwal 1 Menit');
+
+        // 3. Pada waktu 10:01:00 WIB (tepat pada menit rilis) -> Pengumuman TAMPIL
+        Carbon::setTestNow(Carbon::parse('2026-10-25 10:01:00', 'Asia/Jakarta'));
+        $resExact = $this->actingAs($participant)->get(route('announcements.index'));
+        $resExact->assertSuccessful();
+        $resExact->assertSee('Pengumuman Rilis Terjadwal 1 Menit');
+
+        // 4. Setelah waktu lewat (10:02:00 WIB) -> Pengumuman TETAP TAMPIL
+        Carbon::setTestNow(Carbon::parse('2026-10-25 10:02:00', 'Asia/Jakarta'));
+        $resAfter = $this->actingAs($participant)->get(route('announcements.index'));
+        $resAfter->assertSuccessful();
+        $resAfter->assertSee('Pengumuman Rilis Terjadwal 1 Menit');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_mode_hidden_until_end_berubah_tepat_di_submission_close_at(): void
+    {
+        $leaderboardService = app(LeaderboardService::class);
+
+        $this->settings->set('leaderboard_mode', 'hidden_until_end');
+        $this->settings->set('submission_close_at', '2026-10-25 17:00:00');
+
+        // 1. Tepat 1 detik sebelum tutup (16:59:59 WIB) -> Papan peringkat TERSEMBUNYI
+        Carbon::setTestNow(Carbon::parse('2026-10-25 16:59:59', 'Asia/Jakarta'));
+        $this->assertFalse($leaderboardService->isPubliclyVisible());
+
+        // 2. Tepat pada detik submission_close_at (17:00:00 WIB) -> Berubah menjadi TERBUKA
+        Carbon::setTestNow(Carbon::parse('2026-10-25 17:00:00', 'Asia/Jakarta'));
+        $this->assertTrue($leaderboardService->isPubliclyVisible());
+
+        // 3. Setelah waktu penutupan lewat (17:00:01 WIB) -> Tetap TERBUKA
+        Carbon::setTestNow(Carbon::parse('2026-10-25 17:00:01', 'Asia/Jakarta'));
+        $this->assertTrue($leaderboardService->isPubliclyVisible());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_batas_jendela_pendaftaran_pada_tepi_detik_wib_via_http_request(): void
     {
         // Set jendela pendaftaran 09:00:00 WIB s/d 17:00:00 WIB
         $this->settings->set('registration_open_at', '2026-10-25 09:00:00');
@@ -65,13 +135,13 @@ class TimezoneAndWindowEdgeTest extends TestCase
             'accept_rules' => '1',
         ];
 
-        // 1. Tepat 1 detik sebelum buka: 08:59:59 WIB (01:59:59 UTC) -> DITOLAK
+        // 1. Tepat 1 detik sebelum buka: 08:59:59 WIB -> DITOLAK
         Carbon::setTestNow(Carbon::parse('2026-10-25 08:59:59', 'Asia/Jakarta'));
         $respEarly = $this->post('/register', $regPayload);
         $respEarly->assertSessionHasErrors(['email']);
         $this->assertDatabaseMissing('users', ['email' => 'mhs.baru@ubbg.ac.id']);
 
-        // 2. Tepat pada detik awal buka: 09:00:00 WIB (02:00:00 UTC) -> DITERIMA
+        // 2. Tepat pada detik awal buka: 09:00:00 WIB -> DITERIMA
         Carbon::setTestNow(Carbon::parse('2026-10-25 09:00:00', 'Asia/Jakarta'));
         $respOpen = $this->post('/register', $regPayload);
         $respOpen->assertRedirect();
@@ -80,7 +150,7 @@ class TimezoneAndWindowEdgeTest extends TestCase
         // Logout pengguna pertama agar request berikutnya tidak dianggap guest terautentikasi
         auth()->logout();
 
-        // 3. Tepat pada detik akhir tutup: 17:00:00 WIB (10:00:00 UTC) -> DITERIMA (inklusif tepi menit)
+        // 3. Tepat pada detik akhir tutup: 17:00:00 WIB -> DITERIMA (inklusif tepi detik)
         Carbon::setTestNow(Carbon::parse('2026-10-25 17:00:00', 'Asia/Jakarta'));
         $regPayload2 = array_merge($regPayload, [
             'nim' => '20269998',
@@ -92,7 +162,7 @@ class TimezoneAndWindowEdgeTest extends TestCase
 
         auth()->logout();
 
-        // 4. Lewat 1 detik setelah tutup: 17:00:01 WIB (10:00:01 UTC) -> DITOLAK
+        // 4. Lewat 1 detik setelah tutup: 17:00:01 WIB -> DITOLAK
         Carbon::setTestNow(Carbon::parse('2026-10-25 17:00:01', 'Asia/Jakarta'));
         $regPayload3 = array_merge($regPayload, [
             'nim' => '20269997',
@@ -105,7 +175,7 @@ class TimezoneAndWindowEdgeTest extends TestCase
         Carbon::setTestNow();
     }
 
-    public function test_batas_jendela_pengiriman_laporan_pada_tepi_menit_wib_via_http_request(): void
+    public function test_batas_jendela_pengiriman_laporan_pada_tepi_detik_wib_via_http_request(): void
     {
         // Set jendela pengiriman 10:00:00 WIB s/d 18:00:00 WIB
         $this->settings->set('submission_open_at', '2026-10-25 10:00:00');
@@ -182,19 +252,19 @@ class TimezoneAndWindowEdgeTest extends TestCase
             'attachments' => [$file],
         ];
 
-        // 1. Tepat 1 detik sebelum buka: 09:59:59 WIB (02:59:59 UTC) -> DITOLAK
+        // 1. Tepat 1 detik sebelum buka: 09:59:59 WIB -> DITOLAK
         Carbon::setTestNow(Carbon::parse('2026-10-25 09:59:59', 'Asia/Jakarta'));
         $respEarly = $this->actingAs($user)->post(route('reports.store'), $reportPayload);
         $respEarly->assertSessionHasErrors();
         $this->assertDatabaseCount('reports', 0);
 
-        // 2. Tepat pada detik buka: 10:00:00 WIB (03:00:00 UTC) -> DITERIMA
+        // 2. Tepat pada detik buka: 10:00:00 WIB -> DITERIMA
         Carbon::setTestNow(Carbon::parse('2026-10-25 10:00:00', 'Asia/Jakarta'));
         $respOpen = $this->actingAs($user)->post(route('reports.store'), $reportPayload);
         $respOpen->assertSessionHas('success');
         $this->assertDatabaseCount('reports', 1);
 
-        // 3. Tepat pada detik akhir tutup: 18:00:00 WIB (11:00:00 UTC) -> DITERIMA
+        // 3. Tepat pada detik akhir tutup: 18:00:00 WIB -> DITERIMA
         Carbon::setTestNow(Carbon::parse('2026-10-25 18:00:00', 'Asia/Jakarta'));
         $file2 = UploadedFile::fake()->image('proof2.png', 400, 300);
         $reportPayload['attachments'] = [$file2];
@@ -202,7 +272,7 @@ class TimezoneAndWindowEdgeTest extends TestCase
         $respEdge->assertSessionHas('success');
         $this->assertDatabaseCount('reports', 2);
 
-        // 4. Lewat 1 detik setelah tutup: 18:00:01 WIB (11:00:01 UTC) -> DITOLAK
+        // 4. Lewat 1 detik setelah tutup: 18:00:01 WIB -> DITOLAK
         Carbon::setTestNow(Carbon::parse('2026-10-25 18:00:01', 'Asia/Jakarta'));
         $file3 = UploadedFile::fake()->image('proof3.png', 400, 300);
         $reportPayload['attachments'] = [$file3];

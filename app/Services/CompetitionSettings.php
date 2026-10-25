@@ -105,28 +105,6 @@ class CompetitionSettings
     ];
 
     /**
-     * Normalisasi nilai sebelum disimpan. Nilai tanggal dalam WIB dikonversi dan disimpan dalam UTC.
-     */
-    public function normalizeValue(string $key, mixed $value): mixed
-    {
-        if (in_array($key, self::DATE_KEYS, true)) {
-            if ($value === null || $value === '') {
-                return null;
-            }
-            if ($value instanceof Carbon) {
-                return $value->copy()->setTimezone('UTC')->format('Y-m-d H:i:s');
-            }
-            if (is_string($value) && trim($value) !== '') {
-                $hasExplicitTz = str_contains($value, '+') || str_contains($value, 'Z') || preg_match('/\s(WIB|UTC|GMT)/i', $value);
-                $carbon = $hasExplicitTz ? Carbon::parse($value) : Carbon::parse($value, 'Asia/Jakarta');
-                return $carbon->setTimezone('UTC')->format('Y-m-d H:i:s');
-            }
-        }
-
-        return $value;
-    }
-
-    /**
      * Mengambil daftar seluruh nilai default resmi
      */
     public function getDefaults(): array
@@ -175,7 +153,7 @@ class CompetitionSettings
     public function set(string $key, mixed $value, ?int $updatedBy = null): void
     {
         $this->validateKey($key, $value);
-        $normalized = $this->normalizeValue($key, $value);
+        $savedValue = $value instanceof Carbon ? $value->format('Y-m-d H:i:s') : ($value === '' ? null : $value);
         $oldValue = $this->get($key);
 
         $causerId = $updatedBy ?? (auth()->check() ? auth()->id() : null);
@@ -183,7 +161,7 @@ class CompetitionSettings
         CompetitionSetting::updateOrCreate(
             ['key' => $key],
             [
-                'value' => ['value' => $normalized],
+                'value' => ['value' => $savedValue],
                 'updated_by' => $causerId,
             ]
         );
@@ -197,7 +175,7 @@ class CompetitionSettings
                     ->withProperties([
                         'key' => $key,
                         'old' => $oldValue,
-                        'new' => $normalized,
+                        'new' => $savedValue,
                     ]);
 
                 if ($causer) {
@@ -221,11 +199,11 @@ class CompetitionSettings
         }
 
         foreach ($settings as $key => $value) {
-            $normalized = $this->normalizeValue($key, $value);
+            $savedValue = $value instanceof Carbon ? $value->format('Y-m-d H:i:s') : ($value === '' ? null : $value);
             CompetitionSetting::updateOrCreate(
                 ['key' => $key],
                 [
-                    'value' => ['value' => $normalized],
+                    'value' => ['value' => $savedValue],
                     'updated_by' => $updatedBy,
                 ]
             );
@@ -351,31 +329,18 @@ class CompetitionSettings
     }
 
     /**
-     * Mengambil nilai tanggal dalam zona waktu Asia/Jakarta (WIB) untuk form input / tampilan
-     */
-    public function getWib(string $key): ?Carbon
-    {
-        $val = $this->get($key);
-        if ($val === null || $val === '') {
-            return null;
-        }
-
-        return Carbon::parse($val, 'UTC')->setTimezone('Asia/Jakarta');
-    }
-
-    /**
-     * Cek apakah pendaftaran saat ini sedang terbuka (perbandingan absolut di zona UTC)
+     * Cek apakah pendaftaran saat ini sedang terbuka (perbandingan langsung dalam zona waktu WIB)
      */
     public function isRegistrationOpen(): bool
     {
-        $now = now()->utc();
+        $now = now();
         $openAt = $this->get('registration_open_at');
         $closeAt = $this->get('registration_close_at');
 
-        if ($openAt && $now->lt(Carbon::parse($openAt, 'UTC')->utc())) {
+        if ($openAt && $now->lt(Carbon::parse($openAt))) {
             return false;
         }
-        if ($closeAt && $now->gt(Carbon::parse($closeAt, 'UTC')->utc())) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
             return false;
         }
 
@@ -383,18 +348,18 @@ class CompetitionSettings
     }
 
     /**
-     * Cek apakah pengiriman laporan saat ini sedang terbuka (perbandingan absolut di zona UTC)
+     * Cek apakah pengiriman laporan saat ini sedang terbuka (perbandingan langsung dalam zona waktu WIB)
      */
     public function isSubmissionOpen(): bool
     {
-        $now = now()->utc();
+        $now = now();
         $openAt = $this->get('submission_open_at');
         $closeAt = $this->get('submission_close_at');
 
-        if ($openAt && $now->lt(Carbon::parse($openAt, 'UTC')->utc())) {
+        if ($openAt && $now->lt(Carbon::parse($openAt))) {
             return false;
         }
-        if ($closeAt && $now->gt(Carbon::parse($closeAt, 'UTC')->utc())) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
             return false;
         }
 

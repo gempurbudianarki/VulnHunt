@@ -81,8 +81,7 @@ class CompetitionSettingResource extends Resource
                             return '(null / tidak terbatas)';
                         }
                         if (in_array($record->key, CompetitionSettings::DATE_KEYS, true)) {
-                            $wib = $settingsService->getWib($record->key);
-                            return $wib ? $wib->format('d M Y, H:i') . ' WIB' : '(belum diatur)';
+                            return $val ? \Illuminate\Support\Carbon::parse($val)->format('d M Y, H:i') . ' WIB' : '(belum diatur)';
                         }
                         return (string) $val;
                     })
@@ -186,13 +185,13 @@ class CompetitionSettingResource extends Resource
                         }
 
                         if (in_array($key, CompetitionSettings::DATE_KEYS, true)) {
-                            $wib = $settingsService->getWib($key);
+                            $val = is_array($current) ? ($current['value'] ?? null) : $current;
                             return [
                                 TextInput::make('value')
                                     ->label('Waktu Batas (WIB)')
                                     ->placeholder('YYYY-MM-DD HH:MM:SS')
-                                    ->helperText('Masukkan dalam zona WIB (Asia/Jakarta). Disimpan di UTC.')
-                                    ->default($wib ? $wib->format('Y-m-d H:i:s') : ''),
+                                    ->helperText('Masukkan dalam zona WIB (Asia/Jakarta).')
+                                    ->default($val ? \Illuminate\Support\Carbon::parse($val)->format('Y-m-d H:i:s') : ''),
                             ];
                         }
 

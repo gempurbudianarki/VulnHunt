@@ -113,13 +113,13 @@
                         02. Kalkulator CVSS v3.1 Interaktif
                     </h2>
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-xs px-2.5 py-1 rounded font-bold"
+                        <span class="font-mono text-xs px-3 py-1.5 rounded-clay-sm font-black tracking-wide"
                               :class="{
-                                  'bg-severity-info/20 text-severity-info': severity === 'info',
-                                  'bg-severity-low/20 text-severity-low': severity === 'low',
-                                  'bg-severity-medium/20 text-severity-medium': severity === 'medium',
-                                  'bg-severity-high/20 text-severity-high': severity === 'high',
-                                  'bg-severity-critical/20 text-severity-critical': severity === 'critical'
+                                  'bg-sky-100 text-sky-950 border border-sky-300': severity === 'info',
+                                  'bg-emerald-100 text-emerald-950 border border-emerald-300': severity === 'low',
+                                  'bg-amber-100 text-amber-950 border border-amber-300': severity === 'medium',
+                                  'bg-orange-100 text-orange-950 border border-orange-300': severity === 'high',
+                                  'bg-rose-100 text-rose-950 border border-rose-300': severity === 'critical'
                               }"
                               x-text="severity.toUpperCase() + ' (' + score + ')'">
                         </span>
@@ -143,20 +143,20 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Attack Vector (AV)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_av" value="N" x-model="av" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_av" value="N" x-model="av" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Network (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_av" value="A" x-model="av" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_av" value="A" x-model="av" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Adjacent (A)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_av" value="L" x-model="av" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_av" value="L" x-model="av" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Local (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_av" value="P" x-model="av" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_av" value="P" x-model="av" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Physical (P)</span>
                             </label>
                         </div>
@@ -166,12 +166,12 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Complexity (AC)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_ac" value="L" x-model="ac" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_ac" value="L" x-model="ac" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Low (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_ac" value="H" x-model="ac" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_ac" value="H" x-model="ac" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>High (H)</span>
                             </label>
                         </div>
@@ -181,16 +181,16 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Privileges (PR)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_pr" value="N" x-model="pr" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_pr" value="N" x-model="pr" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>None (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_pr" value="L" x-model="pr" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_pr" value="L" x-model="pr" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Low (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_pr" value="H" x-model="pr" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_pr" value="H" x-model="pr" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>High (H)</span>
                             </label>
                         </div>
@@ -200,12 +200,12 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">User Interaction (UI)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_ui" value="N" x-model="ui" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_ui" value="N" x-model="ui" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>None (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_ui" value="R" x-model="ui" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_ui" value="R" x-model="ui" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Required (R)</span>
                             </label>
                         </div>
@@ -215,12 +215,12 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Scope (S)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_s" value="U" x-model="s" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_s" value="U" x-model="s" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Unchanged (U)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_s" value="C" x-model="s" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_s" value="C" x-model="s" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Changed (C)</span>
                             </label>
                         </div>
@@ -230,16 +230,16 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Confidentiality (C)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_c" value="N" x-model="c" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_c" value="N" x-model="c" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>None (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_c" value="L" x-model="c" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_c" value="L" x-model="c" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Low (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_c" value="H" x-model="c" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_c" value="H" x-model="c" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>High (H)</span>
                             </label>
                         </div>
@@ -249,16 +249,16 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Integrity (I)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_i" value="N" x-model="i" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_i" value="N" x-model="i" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>None (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_i" value="L" x-model="i" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_i" value="L" x-model="i" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Low (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_i" value="H" x-model="i" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_i" value="H" x-model="i" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>High (H)</span>
                             </label>
                         </div>
@@ -268,16 +268,16 @@
                     <div class="p-3 rounded-card bg-sage/10 border border-abu-batu/10 space-y-1.5">
                         <span class="font-mono text-[11px] font-bold text-lumut block">Availability (A)</span>
                         <div class="space-y-1">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_a" value="N" x-model="a" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_a" value="N" x-model="a" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>None (N)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_a" value="L" x-model="a" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_a" value="L" x-model="a" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>Low (L)</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="calc_a" value="H" x-model="a" @change="calculate()" class="text-daun focus:ring-daun">
+                            <label class="flex items-center gap-2.5 py-2 px-2.5 rounded-clay-sm hover:bg-slate-200/60 cursor-pointer min-h-[44px]">
+                                <input type="radio" name="calc_a" value="H" x-model="a" @change="calculate()" class="w-4 h-4 text-daun focus:ring-daun shrink-0">
                                 <span>High (H)</span>
                             </label>
                         </div>

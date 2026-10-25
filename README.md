@@ -109,3 +109,38 @@ Sistem notifikasi email platform (perubahan status laporan `ReportStatusChangedN
 > stdout_logfile=/var/www/vulnhunt/storage/logs/worker.log
 > stopwaitsecs=3600
 > ```
+
+
+---
+
+## 7. Konfigurasi Zona Waktu Tunggal (WIB - Asia/Jakarta)
+
+Platform VulnHunt menggunakan konvensi zona waktu tunggal: **WIB (Asia/Jakarta / UTC+7)** di seluruh lapisan sistem (aplikasi, database, CLI, web, dan antrean).
+
+- Konfigurasi pada .env:
+  `ini
+  APP_TIMEZONE=Asia/Jakarta
+  `
+- Konfigurasi koneksi MySQL (config/database.php):
+  `php
+  'timezone' => '+07:00',
+  `
+- **Penyimpanan Database**: Seluruh kolom waktu (
+eports.submitted_at, nnouncements.published_at, 	eams.created_at, dan konfigurasi competition_settings) disimpan langsung dalam zona waktu WIB murni (Y-m-d H:i:s), tanpa konversi bolak-balik UTC. Hal ini memudahkan query langsung oleh panitia di database dan mencegah kesalahan kalkulasi tenggat waktu lomba.
+
+---
+
+## 8. Akun Demo & Perlindungan Lingkungan Produksi
+
+Untuk mempermudah pengujian di lingkungan lokal dan testing, tersedia DemoAccountsSeeder:
+
+`ash
+# Hanya jalankan di local / testing
+php artisan db:seed --class=DemoAccountsSeeder
+`
+
+> [!CAUTION]
+> **PERLINDUNGAN LINGKUNGAN PRODUKSI:**
+> 1. DemoAccountsSeeder **DILARANG KERAS** dan otomatis melempar RuntimeException jika dijalankan pada APP_ENV=production.
+> 2. DatabaseSeeder utama tidak memanggil DemoAccountsSeeder secara default.
+> 3. **Tidak ada kredensial hardcode**: Password akun demo dibaca dari file .env (DEMO_ADMIN_PASSWORD, DEMO_TRIAGER_PASSWORD, DEMO_PARTICIPANT_PASSWORD). Jika variabel tidak diisi, seeder akan membuat password acak 16 karakter yang kuat secara kriptografis (Str::password(16)) dan mencetaknya **satu kali saja** ke tabel konsol CLI.

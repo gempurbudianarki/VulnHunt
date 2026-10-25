@@ -113,9 +113,9 @@
                             <!-- Specimen Body -->
                             <div class="space-y-4">
                                 <div>
-                                    <h3 class="text-lg font-bold text-slate-900 leading-snug">
+                                    <p class="text-lg font-bold text-slate-900 leading-snug">
                                         Remote Code Execution via Insecure Deserialization
-                                    </h3>
+                                    </p>
                                     <p class="text-xs text-slate-600 font-mono mt-1.5 flex items-center gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
@@ -192,7 +192,7 @@
                     <p class="text-[11px] text-slate-500 mt-0.5">Dilindungi Kebijakan Kampus</p>
                 </div>
                 <div class="p-5 rounded-clay-md bg-slate-50/70 border border-slate-200/70">
-                    <p class="text-2xl sm:text-3xl font-black text-brand-accent font-mono tracking-tight">CVSS v3.1</p>
+                    <p class="text-2xl sm:text-3xl font-black text-amber-900 font-mono tracking-tight">CVSS v3.1</p>
                     <p class="text-xs font-bold text-slate-700 mt-1 uppercase tracking-wider">Standar Global FIRST</p>
                     <p class="text-[11px] text-slate-500 mt-0.5">Triage Transparan & Adil</p>
                 </div>
@@ -252,7 +252,7 @@
                             Mendeteksi kelemahan sistem sebelum disusupi ancaman eksternal, mengedukasi standar pelaporan kerentanan terkoordinasi (<em>Coordinated Disclosure</em>), serta menanamkan etika peretasan putih di lingkungan perguruan tinggi.
                         </p>
                     </div>
-                    <div class="pt-6 mt-6 border-t border-slate-100 text-xs font-semibold text-brand-accent">
+                    <div class="pt-6 mt-6 border-t border-slate-100 text-xs font-semibold text-amber-900">
                         Pilar 02 • Ethical Standards
                     </div>
                 </div>
@@ -351,15 +351,15 @@
 
                         <ul class="text-xs text-slate-700 font-medium space-y-2.5">
                             <li class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <svg class="w-4 h-4 text-amber-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 <span>Trophy Bergilir Juara Umum Rektorat</span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <svg class="w-4 h-4 text-amber-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 <span>Surat Rekomendasi Tim Riset Khusus</span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-brand-accent shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                <svg class="w-4 h-4 text-amber-800 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 <span>Sorotan Utama di Portal Resmi Kampus</span>
                             </li>
                         </ul>

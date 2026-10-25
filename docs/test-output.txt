@@ -1,0 +1,180 @@
+
+   PASS  Tests\Unit\CompetitionSettingsTest
+  ✓ competition settings memuat nilai default sesuai spesifikasi                                                 0.41s  
+  ✓ perubahan setting langsung terbaca melalui cache bersama                                                     0.10s  
+  ✓ validasi batas laporan aktif menolak nilai di luar rentang 1-50                                              0.06s  
+  ✓ validasi ukuran tim menolak nilai di luar rentang 1-10                                                       0.06s  
+  ✓ validasi poin menolak bobot negatif                                                                          0.05s  
+  ✓ validasi mode leaderboard menolak nilai selain visible, hidden, hidden_until_end                             0.06s  
+
+   PASS  Tests\Unit\CvssCalculatorTest
+  ✓ kalkulator CVSS menghitung 4 vector uji wajib spesifikasi dengan benar                                       0.10s  
+  ✓ kasus tepi: impact <= 0 menghasilkan skor 0.0 dan severity info                                              0.06s  
+  ✓ fungsi roundup cvss 3.1 bekerja presisi terhadap floating point                                              0.05s  
+  ✓ kalkulator CVSS melempar exception jika komponen vector tidak lengkap atau tidak valid                       0.06s  
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Feature\ActivityLogResourceSecurityTest
+  ✓ triager dan peserta dilarang mengakses audit log aktivitas di filament (403)                                 0.19s  
+  ✓ admin dapat mengakses resource log aktivitas yang bersifat baca-saja tanpa aksi hapus                        0.45s  
+  ✓ data sensitif (password, 2fa secret, token) disamarkan dan tidak bocor di tabel atau respons http            0.29s  
+
+   PASS  Tests\Feature\AnnouncementManagementAndSecurityTest
+  ✓ triager dan peserta dilarang mengakses halaman kelola pengumuman di filament (403)                           0.12s  
+  ✓ admin dapat mengakses dan melakukan crud pengumuman di panel filament                                        0.74s  
+  ✓ peserta hanya dapat melihat pengumuman yang sudah terbit bukan draft atau terjadwal masa depan               0.18s  
+  ✓ pengumuman tersemat (is_pinned) tampil di atas pengumuman lainnya                                            0.10s  
+  ✓ markdown disanitasi: payload xss script, onerror, iframe, dan tautan berbahaya tidak tereksekusi             0.11s  
+  ✓ markdown disanitasi menggunakan league commonmark: seluruh payload xss dan tautan berbahaya dinetralkan      0.09s  
+
+   PASS  Tests\Feature\CsvExportSecurityTest
+  ✓ triager dan peserta dilarang mengunduh ekspor csv laporan dan peringkat (403)                                0.11s  
+  ✓ admin dapat mengunduh ekspor csv laporan dengan utf-8 bom, metadata tanpa isi laporan, dan tercatat di acti… 0.15s  
+  ✓ mitigasi csv injection: sel berawalan =, +, -, @, tab, dan cr diberi awalan tanda kutip tunggal              0.13s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                                                                0.12s  
+
+   PASS  Tests\Feature\FilamentAdminManagementTest
+  ✓ admin dapat mengakses seluruh halaman resource utama di filament                                             0.61s  
+  ✓ triager dilarang mengakses halaman verifikasi nda, peserta, dan tim di filament (403)                        0.12s  
+  ✓ admin dapat menyetujui pengajuan nda dan mengirimkan notifikasi email ke peserta                             0.32s  
+  ✓ admin dapat menolak pengajuan nda dengan alasan wajib dan mengirimkan notifikasi email                       0.51s  
+  ✓ admin mengunduh berkas nda dicatat di spatie activity log                                                    0.23s  
+  ✓ triager dilarang mengunduh berkas nda peserta lain (403)                                                     0.10s  
+  ✓ admin dapat melakukan crud scope dengan criticality weight dan notes                                         0.34s  
+  ✓ admin dapat mengaktifkan dan menonaktifkan pengguna di panel filament                                        0.39s  
+  ✓ admin dapat mendiskualifikasi tim, override kuota, dan memindahkan ketua tim                                 1.04s  
+
+   PASS  Tests\Feature\FilamentCompetitionSettingsTest
+  ✓ triager dan peserta biasa dilarang mengakses halaman pengaturan lomba di filament (403)                      0.21s  
+  ✓ admin dengan 2fa aktif dapat mengakses halaman pengaturan lomba di filament (200)                            0.57s  
+  ✓ validasi pengaturan menggunakan single source competition settings dan menolak nilai tidak valid             2.55s  
+  ✓ tombol reset per key mengembalikan nilai ke default dan langsung terbaca di cache                            1.06s  
+  ✓ perubahan rules_version dan allowed_email_domains dicatat di activity log dengan old dan new values          1.57s  
+  ✓ menurunkan max_team_size di bawah ukuran tim yang ada tidak mengeluarkan anggota dan menghalangi anggota ba… 0.13s  
+
+   PASS  Tests\Feature\HttpSecurityReviewTest
+  ✓ peserta mengirim is_internal, status=valid, severity_final, points_awarded, atau user_id lewat form pembuat… 0.13s  
+  ✓ peserta mengirim is_internal=1 atau manipulasi status saat membalas laporan diabaikan secara mutlak          0.15s  
+  ✓ peserta membalas laporan yang statusnya bukan needs_info ditolak oleh server                                 0.11s  
+  ✓ peserta menembak url admin langsung mendapatkan respons 403 atau redirect penolakan                          0.10s  
+  ✓ triager menembak aksi nda dan manipulasi tim lewat http mendapatkan 403                                      0.11s  
+  ✓ peserta dilarang membaca atau mengunduh lampiran laporan milik tim lain (idor protection)                    0.16s  
+  ✓ transisi status tidak sah lewat request langsung ke action filament ditolak secara rapi                      0.23s  
+
+   PASS  Tests\Feature\LandingPageTest
+  ✓ landing page can be rendered                                                                                 0.10s  
+  ✓ landing page shows authenticated actions when logged in                                                      0.08s  
+
+   PASS  Tests\Feature\LeaderboardAggregationAndSecurityTest
+  ✓ tie break 4 tingkat dan penyaringan tim diskualifikasi                                                       0.16s  
+  ✓ tampilan hanya nama tim poin dan laporan valid tanpa nama anggota atau nim                                   0.11s  
+  ✓ mode hidden dan hidden until end tidak membocorkan data ke peserta tetapi admin bisa melihat                 0.16s  
+  ✓ perubahan status valid mengubah peringkat seketika tanpa menunggu ttl                                        0.23s  
+
+   PASS  Tests\Feature\MySqlConcurrencyTest
+  ✓ mysql lockForUpdate menahan exclusive row lock dan menahan transaksi konkuren                                1.18s  
+  ✓ TeamController::join memanggil lockForUpdate pada level produksi (mutation check)                            2.10s  
+  ✓ ReportController::store memanggil lockForUpdate pada level produksi (mutation check)                         1.84s  
+  ✓ skenario balapan join tim di mysql via Process pool: memanggil TeamController produksi secara paralel        1.26s  
+  ✓ skenario balapan kirim laporan di mysql via Process pool: memanggil ReportController produksi secara parale… 1.13s  
+  ✓ mysql invarian opsi B: balasan needs_info tim tetap sukses saat kuota aktif mysql penuh                      0.27s  
+
+   PASS  Tests\Feature\Phase1RefinementsTest
+  ✓ peserta biasa mendapat 403 saat mencoba mengakses /admin                                                     0.12s  
+  ✓ admin tanpa 2FA atau dengan must_change_password mendapat 403 di /admin                                      0.10s  
+  ✓ admin dengan 2FA aktif dan password sudah diganti dapat mengakses /admin                                     0.19s  
+  ✓ InitialAdminSeeder melempar exception jika env credential kosong                                             0.08s  
+  ✓ InitialAdminSeeder membuat admin dengan flag must_change_password true tanpa kredensial hardcode             0.09s  
+  ✓ alur inisialisasi keamanan staf: wajib ganti password dan verifikasi kode TOTP 2FA                           0.27s  
+  ✓ registrasi menerima subdomain resmi kampus (contoh mhs.ubbg.ac.id)                                           0.12s  
+  ✓ jika daftar allowed_email_domains kosong, registrasi menerima semua domain                                   0.12s  
+  ✓ upload NDA gambar menolak gambar yang melebihi batas 6000px dengan pesan jelas                               0.19s  
+  ✓ upload NDA gambar valid dalam batas 6000px diproses dan dihitung hash sha256                                 1.56s  
+  ✓ dua anggota berebut slot terakhir: anggota pertama diterima, anggota kedua ditolak karena tim penuh          0.18s  
+  ✓ throttle endpoint gabung tim dibatasi 10 per menit per pengguna                                              0.22s  
+  ✓ throttle endpoint registrasi secara default dibatasi 60 per jam per IP                                       0.26s  
+  ✓ ketua tim tidak bisa keluar sebelum menunjuk ketua baru jika ada anggota lain                                0.12s  
+  ✓ admin dapat memindahkan ketua tim ke anggota lain                                                            0.13s  
+  ✓ persetujuan aturan wajib diulang saat rules_version dinaikkan oleh panitia                                   0.20s  
+  ✓ staf dengan 2FA aktif tidak bisa mengakses panel hanya dengan password tanpa menyelesaikan tantangan TOTP    0.41s  
+  ✓ peserta biasa yang memanggil POST /app/tim/{team}/admin-pindah-ketua mendapat 403                            0.08s  
+  ✓ transfer-ketua hanya boleh ke anggota tim yang sama dan menolak pihak luar                                   0.09s  
+  ✓ mass assignment pada registrasi tidak bisa menetapkan is_active, must_change_password, atau role admin       0.12s  
+  ✓ rate limiter registrasi dapat diubah dinamis lewat competition_settings                                      0.12s  
+
+   PASS  Tests\Feature\Phase1Test
+  ✓ registrasi berhasil dengan email kampus ubbg dan password minimal 10 karakter                                0.12s  
+  ✓ registrasi ditolak jika email bukan domain resmi kampus ubbg                                                 0.09s  
+  ✓ aturan satu orang satu tim: pengguna tidak dapat membuat atau bergabung lebih dari satu tim                  0.10s  
+  ✓ gabung tim ditolak jika tim sudah penuh sesuai max_team_size                                                 0.09s  
+  ✓ anggota bisa keluar tim jika tim belum memiliki laporan                                                      0.08s  
+  ✓ anggota tidak bisa keluar tim jika tim sudah memiliki laporan                                                0.09s  
+  ✓ gerbang akses NDA berlaku per anggota: anggota approved bisa akses scope, anggota belum approved terkunci    0.11s  
+  ✓ peserta yang sudah approved dilarang unggah ulang berkas yang dapat menjatuhkan statusnya                    0.08s  
+  ✓ unduhan berkas NDA selalu mengembalikan Content-Disposition attachment dan nosniff                           0.09s  
+  ✓ idor test: peserta lain tidak dapat mengunduh berkas NDA milik peserta berbeda                               0.09s  
+
+   PASS  Tests\Feature\Phase2Test
+  ✓ pengiriman laporan menolak scope yang out_of_scope atau is_active false                                      0.15s  
+  ✓ pengiriman laporan menolak CWE yang is_active false                                                          0.12s  
+  ✓ langkah reproduksi (steps_to_reproduce) wajib minimal 100 karakter                                           0.10s  
+  ✓ submitted_at ditetapkan mutlak oleh server dan tidak bisa dimanipulasi lewat request                         0.09s  
+  ✓ upload lampiran menolak format SVG secara mutlak                                                             0.09s  
+  ✓ unduhan lampiran selalu mengembalikan Content-Disposition attachment dan nosniff                             0.09s  
+  ✓ idor test: Tim A tidak bisa melihat laporan atau mengunduh lampiran milik Tim B                              0.16s  
+  ✓ tim dengan kuota laporan aktif penuh tetap BISA membalas laporan berstatus needs_info                        0.14s  
+  ✓ tim tidak bisa mengubah status laporannya sendiri menjadi needs_info                                         0.11s  
+  ✓ rate limit kirim laporan dibatasi per jam per tim sesuai competition_settings                                0.13s  
+  ✓ rate limit upload dibatasi per menit per pengguna sesuai competition_settings                                0.11s  
+  ✓ rate limit komentar dibatasi per menit per pengguna sesuai competition_settings                              0.11s  
+  ✓ pengiriman laporan di luar jendela waktu submission_open_at dan submission_close_at ditolak                  0.13s  
+  ✓ upload bukti eksploitasi dengan dimensi melebihi 4096 piksel ditolak dengan pesan jelas                      0.18s  
+  ✓ request yang melebihi post_max_size ditangani dengan pesan ramah bukan 419                                   0.09s  
+  ✓ kolom sensitif laporan tersimpan sebagai ciphertext terenkripsi di database                                  0.08s  
+  ✓ laporan yang sudah dikirim tidak bisa diedit bebas dan tidak ada rute edit untuk peserta                     0.06s  
+  ✓ nama file lampiran disanitasi saat diunduh untuk mencegah directory traversal dan header injection           0.09s  
+
+   PASS  Tests\Feature\Phase3Test
+  ✓ state machine mengizinkan seluruh transisi sah                                                               0.27s  
+  ✓ state machine menolak transisi tidak sah di level server with ('submitted', 'valid')                         0.16s  
+  ✓ state machine menolak transisi tidak sah di level server with ('submitted', 'needs_info')                    0.11s  
+  ✓ state machine menolak transisi tidak sah di level server with ('submitted', 'duplicate')                     0.07s  
+  ✓ state machine menolak transisi tidak sah di level server with ('needs_info', 'valid')                        0.08s  
+  ✓ state machine menolak transisi tidak sah di level server with ('invalid', 'valid')                           0.09s  
+  ✓ state machine menolak transisi tidak sah di level server with ('duplicate', 'valid')                         0.09s  
+  ✓ triager dapat melakukan triage dan komentar tetapi DILARANG verifikasi NDA atau ubah settings                0.13s  
+  ✓ peserta dilarang memicu transisi triage selain membalas needs_info                                           0.07s  
+  ✓ komentar is_internal TIDAK PERNAH muncul di portal peserta                                                   0.12s  
+  ✓ email notifikasi hanya memuat kode laporan dan status, tidak pernah isi laporan atau komentar internal       0.07s  
+  ✓ perhitungan poin valid tanpa diminishing: round(base * criticality_weight * quality_factor)                  0.08s  
+  ✓ perhitungan poin dengan diminishing returns aktif untuk temuan sejenis dari tim yang sama                    0.15s  
+  ✓ membuka kembali keputusan valid/invalid/duplicate me-reset poin dan wajib alasan                             0.31s  
+  ✓ laporan duplikat mendapatkan duplicate_points dari competition_settings dan merujuk duplicate_of             0.26s  
+  ✓ unduhan lampiran oleh staf admin dicatat di activity_log                                                     0.14s  
+  ✓ perubahan vector CVSS final dari klaim peserta wajib disertai catatan alasan                                 0.17s  
+
+   PASS  Tests\Feature\Phase4SecurityReviewTest
+  ✓ real http: akses seluruh resource baru diuji sebagai peserta dan triager (semua 403)                         0.22s  
+  ✓ real http: parameter liar pada ekspor csv ditangani dengan aman tanpa 500 atau sql injection                 0.14s  
+  ✓ real http: mode hidden dan hidden_until_end lewat url langsung tidak membocorkan peringkat                   0.15s  
+  ✓ DemoAccountsSeeder melempar RuntimeException pada environment production dan aman tanpa kredensial hardcode  0.08s  
+
+   PASS  Tests\Feature\PointsRecalculationAndStateMachineTest
+  ✓ diminishing returns menghitung ulang poin seluruh laporan valid saat validasi tidak berurutan dan saat reop… 0.21s  
+  ✓ pembukaan kembali laporan berstatus rewarded hanya boleh role admin dan ditolak untuk triager                0.14s  
+  ✓ transisi ilegal di state machine melempar InvalidArgumentException dengan pesan ramah                        0.07s  
+
+   PASS  Tests\Feature\TimezoneAndWindowEdgeTest
+  ✓ input tanggal wib disimpan dan dibaca murni dalam wib tanpa konversi utc                                     0.06s  
+  ✓ pengumuman dengan published at sekarang plus 1 menit tidak tampil lalu tampil setelah waktu lewat            0.11s  
+  ✓ mode hidden until end berubah tepat di submission close at                                                   0.06s  
+  ✓ batas jendela pendaftaran pada tepi detik wib via http request                                               0.15s  
+  ✓ batas jendela pengiriman laporan pada tepi detik wib via http request                                        0.35s  
+
+  Tests:    136 passed (789 assertions)
+  Duration: 35.76s
+

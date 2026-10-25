@@ -121,3 +121,70 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
        - `submission_close_at = null`: Tidak ada batas akhir (pengiriman dibuka tanpa batas waktu/deadline).
        - Kedua kunci bernilai `null`: Jendela pengiriman laporan berstatus terbuka bebas (unrestricted).
      - Jika waktu saat ini (`now()`) berada sebelum `submission_open_at` atau sesudah `submission_close_at`, pengiriman laporan baru ditolak oleh server dengan pesan validasi error.
+
+
+---
+
+## 12. Konvensi Tunggal Zona Waktu WIB (Asia/Jakarta)
+- **Keputusan**: 
+  1. Seluruh aplikasi menggunakan konvensi tunggal: **WIB (Asia/Jakarta)** di seluruh lapisan sistem (aplikasi, CLI, web request, Blade, Filament, dan Queue).
+  2. APP_TIMEZONE=Asia/Jakarta pada konfigurasi aplikasi (config/app.php).
+  3. Koneksi MySQL (mysql dan mysql_test pada config/database.php) menggunakan 'timezone' => '+07:00'.
+  4. Semua kolom datetime (
+eports.submitted_at, nnouncements.published_at, 	eams.created_at, dan nilai di tabel competition_settings) disimpan dan dibaca secara konsisten dalam format WIB (Y-m-d H:i:s), tanpa konversi bolak-balik UTC (
+ormalizeValue dan getWib yang memakai UTC dihapus).
+  5. Pengujian jendela pendaftaran dan pengiriman laporan serta transisi mode papan peringkat dievaluasi tepat pada tepi detik menggunakan waktu lokal WIB (
+ow()).
+- **Alasan**: Mencegah kebingungan operasional panitia dan peserta, menghilangkan risiko *off-by-hours* akibat konversi zona waktu parsial, dan memastikan audit trail basis data selaras dengan jam resmi lomba di Indonesia.
+- **Alternatif**: Menyimpan dalam UTC dan konversi saat tampilan (rawan inkonsistensi filter SQL dan query mentah panitia).
+
+---
+
+## 13. Sanitasi Markdown Pengumuman (League CommonMark Bawaan Laravel)
+- **Keputusan**: 
+  1. Seluruh sanitasi regex kustom buatan sendiri pada MarkdownSanitizer dihapus dan digantikan secara penuh oleh pustaka resmi **League CommonMark** bawaan Laravel framework melalui facade Illuminate\Support\Str::markdown.
+  2. Opsi konfigurasi ditetapkan secara ketat:
+     - 'html_input' => 'strip': Membuang seluruh tag HTML mentah seperti <script>, <img>, <iframe>, <svg>, <object>, <embed> sehingga tidak ada tag HTML yang lolos ke DOM output.
+     - 'allow_unsafe_links' => false: Menetralkan skema URL berbahaya (seperti javascript:, data:, bscript:) pada sintaks tautan markdown inline [text](url), reference link [text][ref], autolink <url>, dan image ![text](url) dengan membuang atribut href atau src.
+  3. Hasil sanitasi diverifikasi secara menyeluruh menggunakan test suite otomatis terhadap berbagai variasi payload XSS, obfuscation case (JaVaScRiPt:), entity encoding (&#106;avascript:), dan attribute event injection.
+- **Alasan**: Standar keamanan industri melarang regex kustom untuk parsing HTML/Markdown karena rawan bypass parser differential. Pustaka League CommonMark telah teruji luas dan terintegrasi langsung di Laravel.
+
+---
+
+## 14. Papan Peringkat Agregat Bebas N+1 & Keamanan Mode Tersembunyi
+- **Keputusan**: 
+  1. Peringkat dihitung menggunakan satu query SQL agregat efisien (SUM(reports.points_awarded), COUNT(reports.id), dll) dengan pengurutan tie-break 4 tingkat:
+     - Tingkat 1: Total Poin DESC
+     - Tingkat 2: Jumlah Temuan Critical DESC
+     - Tingkat 3: Jumlah Temuan High DESC
+     - Tingkat 4: Waktu Validasi Terakhir ASC (paling awal menang)
+     - Tingkat 5: Team ID ASC (deterministik mutlak)
+  2. Tim berstatus diskualifikasi (	eams.status = 'disqualified') disaring secara mutlak di tingkat query SQL.
+  3. Kolom yang disajikan publik ke peserta dibatasi secara ketat: nama tim, total poin, dan jumlah temuan valid (tanpa mengungkap identitas personal anggota tim atau NIM).
+  4. Mode visibilitas mendukung 3 kondisi:
+     - isible: Terbuka bebas untuk umum.
+     - hidden: Tertutup penuh untuk umum (hanya Admin yang dapat melihat).
+     - hidden_until_end: Otomatis terbuka tepat pada saat submission_close_at terlewati (jika submission_close_at bernilai null, mode tetap tertutup permanen).
+  5. Saat mode hidden aktif, request JSON / API mengembalikan status 403 Forbidden dengan payload data kosong [], dan tampilan HTML tidak memuat data tabel tersembunyi.
+  6. Cache hasil peringkat (ulnhunt_leaderboard_rankings) disentralisasi pada satu titik invalidasi tunggal: LeaderboardService::invalidateCache(), dipanggil otomatis saat ada mutasi status laporan, perhitungan poin, diskualifikasi tim, atau perubahan pengaturan lomba.
+- **Alasan**: Mencegah kebocoran kompetitif sebelum waktu pengumuman resmi dan menjaga performa tinggi database tanpa beban kalkulasi berulang.
+
+---
+
+## 15. Keamanan Ekspor CSV & Mitigasi Formula Injection (DDE)
+- **Keputusan**: 
+  1. Fitur ekspor CSV untuk laporan dan papan peringkat adalah hak akses eksklusif Admin (Triager dan Peserta mendapat respons 403 Forbidden).
+  2. Mitigasi CSV Formula Injection (DDE Attack) diterapkan pada seluruh sel data teks: setiap sel yang diawali karakter formula berbahaya (=, +, -, @, 	, ) otomatis diberi prefix karakter kutip tunggal (').
+  3. Aliran unduhan berkas menggunakan streamDownload Laravel dengan memori efisien ((1)$) untuk mencegah *memory exhaustion* pada ribuan baris data.
+  4. Berkas diawali dengan Byte Order Mark UTF-8 (ï»¿) agar karakter non-ASCII ditampilkan sempurna di Microsoft Excel dan LibreOffice Calc.
+  5. Setiap unduhan ekspor dicatat ke Spatie Activity Log mencakup nama user pengunduh, IP, waktu, jenis data yang diekspor, dan jumlah baris data.
+- **Alasan**: Melindungi perangkat workstation administrator dari serangan eksekusi perintah arbitrer via spreadsheet aplikasi yang mengolah data laporan kiriman peserta.
+
+---
+
+## 16. Pengelolaan Pengaturan Lomba & Peniadaan Kredensial Hardcode
+- **Keputusan**: 
+  1. Panel Filament CompetitionSettingResource terhubung langsung ke service singleton CompetitionSettings sebagai single source of truth validasi dan fallback default resmi.
+  2. Seluruh kredensial hardcode dihapus dari repositori. DemoAccountsSeeder membaca password dari variabel lingkungan (DEMO_ADMIN_PASSWORD, DEMO_TRIAGER_PASSWORD, DEMO_PARTICIPANT_PASSWORD) atau menghasilkan password acak kriptografis 16 karakter (Str::password(16)) yang hanya ditampilkan sekali di konsol CLI saat seeder dijalankan.
+  3. DemoAccountsSeeder dilindungi dengan *environment guard*: melempar RuntimeException jika dijalankan di environment production, dan DatabaseSeeder tidak memanggil seeder demo di lingkungan produksi.
+- **Alasan**: Mencegah pembocoran kredensial statis ke repositori Git publik/privat dan menegakkan prinsip pertahanan berlapis (defense-in-depth).

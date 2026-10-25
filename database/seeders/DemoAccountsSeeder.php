@@ -17,12 +17,20 @@ class DemoAccountsSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            throw new \RuntimeException('DemoAccountsSeeder DILARANG dijalankan pada environment production!');
+        }
+
+        $adminPassword = env('DEMO_ADMIN_PASSWORD') ?: \Illuminate\Support\Str::password(16);
+        $triagerPassword = env('DEMO_TRIAGER_PASSWORD') ?: \Illuminate\Support\Str::password(16);
+        $pesertaPassword = env('DEMO_PARTICIPANT_PASSWORD') ?: \Illuminate\Support\Str::password(16);
+
         // 1. Akun Admin Demo (Langsung Siap Pakai 2FA dengan Recovery Code & Secret Standar)
         $admin = User::updateOrCreate(
             ['email' => 'admin.demo@ubbg.ac.id'],
             [
                 'name' => 'Admin Utama (Demo)',
-                'password' => Hash::make('AdminUBBG2026!'),
+                'password' => Hash::make($adminPassword),
                 'must_change_password' => false,
                 'email_verified_at' => now(),
                 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
@@ -48,7 +56,7 @@ class DemoAccountsSeeder extends Seeder
             ['email' => 'triager.demo@ubbg.ac.id'],
             [
                 'name' => 'Triager Panitia (Demo)',
-                'password' => Hash::make('TriagerUBBG2026!'),
+                'password' => Hash::make($triagerPassword),
                 'must_change_password' => false,
                 'email_verified_at' => now(),
                 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
@@ -76,7 +84,7 @@ class DemoAccountsSeeder extends Seeder
                 'phone' => '081234567890',
                 'study_program' => 'Informatika',
                 'cohort_year' => 2023,
-                'password' => Hash::make('Password123!'),
+                'password' => Hash::make($pesertaPassword),
                 'must_change_password' => false,
                 'email_verified_at' => now(),
                 'rules_accepted_version' => '1',
@@ -87,6 +95,18 @@ class DemoAccountsSeeder extends Seeder
         );
         if (! $peserta->hasRole('participant')) {
             $peserta->assignRole('participant');
+        }
+
+        if ($this->command) {
+            $this->command->info('=== KREDENSIAL AKUN DEMO (LOCAL / TESTING ONLY) ===');
+            $this->command->table(
+                ['Peran', 'Email', 'Password', 'Catatan 2FA'],
+                [
+                    ['Admin', 'admin.demo@ubbg.ac.id', $adminPassword, 'Secret: JBSWY3DPEHPK3PXP / Recovery Code'],
+                    ['Triager', 'triager.demo@ubbg.ac.id', $triagerPassword, 'Secret: JBSWY3DPEHPK3PXP / Recovery Code'],
+                    ['Peserta', 'peserta@ubbg.ac.id', $pesertaPassword, 'Non-2FA (Tim: GARUDA01)'],
+                ]
+            );
         }
 
         // 4. Buat Tim Peserta

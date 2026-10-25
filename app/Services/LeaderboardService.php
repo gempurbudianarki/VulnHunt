@@ -39,7 +39,7 @@ class LeaderboardService
                 return false;
             }
 
-            return now()->utc()->gt(Carbon::parse($closeAt, 'UTC')->utc());
+            return now()->gte(Carbon::parse($closeAt));
         }
 
         return false;

@@ -229,3 +229,37 @@ MD;
     $response->assertSee('href="https://ubbg.ac.id"', false);
     $response->assertSee('Situs Resmi UBBG');
 });
+
+test('markdown disanitasi menggunakan league commonmark: seluruh payload xss dan tautan berbahaya dinetralkan', function () {
+    $payloads = [
+        '[x](JaVaScRiPt:alert(1))',
+        '[x](&#106;avascript:alert(1))',
+        "[x][1]\n\n[1]: javascript:alert(1)",
+        '<javascript:alert(1)>',
+        '![x](javascript:alert(1))',
+        '<img src=x onerror=alert(1)>',
+        '<svg onload=alert(1)>',
+        '<a href="javascript:alert(1)">x</a>',
+        '[x](data:text/html)',
+    ];
+
+    foreach ($payloads as $payload) {
+        $html = MarkdownSanitizer::render($payload);
+
+        // Tidak boleh ada event handler berbahaya atau eksekusi script/svg/img onerror
+        expect($html)->not->toContain('<script')
+            ->and($html)->not->toContain('<svg')
+            ->and($html)->not->toContain('onerror=')
+            ->and($html)->not->toContain('onload=')
+            ->and($html)->not->toContain('href="javascript:')
+            ->and($html)->not->toContain('href="data:')
+            ->and($html)->not->toContain('src="javascript:')
+            ->and($html)->not->toContain('src="data:');
+
+        // Untuk tag HTML mentah seperti <img...>, <svg...>, <a href="javascript:...>, tidak boleh muncul di HTML keluaran
+        if (str_starts_with($payload, '<')) {
+            expect($html)->not->toContain($payload);
+        }
+    }
+});
+
