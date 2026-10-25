@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CompetitionSetting;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
@@ -46,6 +47,9 @@ class CompetitionSettings
         'rules_version' => '1',
         'allowed_email_domains' => ['ubbg.ac.id'],
         'registration_rate_limit_per_hour' => 60,
+        'report_rate_limit_per_hour' => 10,
+        'upload_rate_limit_per_minute' => 20,
+        'comment_rate_limit_per_minute' => 30,
     ];
 
     /**
@@ -197,8 +201,11 @@ class CompetitionSettings
                 break;
 
             case 'registration_rate_limit_per_hour':
+            case 'report_rate_limit_per_hour':
+            case 'upload_rate_limit_per_minute':
+            case 'comment_rate_limit_per_minute':
                 if (! is_int($value) || $value < 1) {
-                    throw new InvalidArgumentException('Batas laju registrasi per jam harus berupa bilangan bulat >= 1.');
+                    throw new InvalidArgumentException("Batas laju {$key} harus berupa bilangan bulat >= 1.");
                 }
                 break;
         }
@@ -213,10 +220,10 @@ class CompetitionSettings
         $openAt = $this->get('registration_open_at');
         $closeAt = $this->get('registration_close_at');
 
-        if ($openAt && $now->lt($openAt)) {
+        if ($openAt && $now->lt(Carbon::parse($openAt))) {
             return false;
         }
-        if ($closeAt && $now->gt($closeAt)) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
             return false;
         }
 
@@ -232,10 +239,10 @@ class CompetitionSettings
         $openAt = $this->get('submission_open_at');
         $closeAt = $this->get('submission_close_at');
 
-        if ($openAt && $now->lt($openAt)) {
+        if ($openAt && $now->lt(Carbon::parse($openAt))) {
             return false;
         }
-        if ($closeAt && $now->gt($closeAt)) {
+        if ($closeAt && $now->gt(Carbon::parse($closeAt))) {
             return false;
         }
 

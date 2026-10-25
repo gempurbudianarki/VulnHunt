@@ -44,6 +44,10 @@ class CompetitionSettingsSeeder extends Seeder
             'triage_age_factor' => 0.5,
             'rules_version' => '1',
             'allowed_email_domains' => ['ubbg.ac.id'],
+            'registration_rate_limit_per_hour' => 60,
+            'report_rate_limit_per_hour' => 10,
+            'upload_rate_limit_per_minute' => 20,
+            'comment_rate_limit_per_minute' => 30,
         ];
 
         $settingsService->setMany($defaultSettings);

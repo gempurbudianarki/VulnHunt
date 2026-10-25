@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\VulnerabilityType;
 use App\Services\CompetitionSettings;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Process;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +34,6 @@ beforeEach(function () {
 });
 
 test('mysql lockForUpdate menahan exclusive row lock dan menahan transaksi konkuren', function () {
-    // 1. Buat data awal di database lombasaiber_test
     $leaderId = DB::connection('mysql_test')->table('users')->insertGetId([
         'name' => 'Leader Test',
         'email' => 'leader_lock@ubbg.ac.id',
@@ -61,13 +61,13 @@ test('mysql lockForUpdate menahan exclusive row lock dan menahan transaksi konku
         'updated_at' => now(),
     ]);
 
-    // 2. Koneksi 1: Mulai transaksi dan kunci baris tim dengan lockForUpdate
+    // 1. Koneksi 1: Mulai transaksi dan kunci baris tim dengan lockForUpdate
     $conn1 = DB::connection('mysql_test');
     $conn1->beginTransaction();
     $lockedTeam = $conn1->table('teams')->where('id', $teamId)->lockForUpdate()->first();
     expect($lockedTeam)->not->toBeNull();
 
-    // 3. Koneksi 2 (Koneksi PDO terpisah): Coba ambil baris yang sama dengan lock wait timeout 1 detik
+    // 2. Koneksi 2 (Koneksi PDO terpisah): Coba ambil baris yang sama dengan lock wait timeout 1 detik
     $pdo2 = new PDO(
         'mysql:host=127.0.0.1;port=3306;dbname=lombasaiber_test;charset=utf8mb4',
         'root',
@@ -80,11 +80,9 @@ test('mysql lockForUpdate menahan exclusive row lock dan menahan transaksi konku
 
     $lockBlocked = false;
     try {
-        // Harus terhalang karena Koneksi 1 memegang exclusive lock
         $stmt = $pdo2->prepare('SELECT * FROM teams WHERE id = ? FOR UPDATE');
         $stmt->execute([$teamId]);
     } catch (PDOException $e) {
-        // MySQL error 1205: Lock wait timeout exceeded
         if (str_contains($e->getMessage(), '1205') || str_contains($e->getMessage(), 'Lock wait timeout')) {
             $lockBlocked = true;
         }
@@ -96,21 +94,18 @@ test('mysql lockForUpdate menahan exclusive row lock dan menahan transaksi konku
     expect($lockBlocked)->toBeTrue('Koneksi 2 harus terblokir timeout oleh lockForUpdate dari Koneksi 1');
 });
 
-test('skenario balapan join tim di mysql: lockForUpdate mencegah pelanggaran max_team_size', function () {
-    $settings = app(CompetitionSettings::class);
-    $settings->set('max_team_size', 2);
-
+test('TeamController::join memanggil lockForUpdate pada level produksi (mutation check)', function () {
     $leader = User::on('mysql_test')->create([
-        'name' => 'Leader Race',
-        'email' => 'leader_race@ubbg.ac.id',
+        'name' => 'Leader Lock Test',
+        'email' => 'leader_lock_join@ubbg.ac.id',
         'password' => bcrypt('password123'),
         'email_verified_at' => now(),
     ]);
 
     $team = Team::on('mysql_test')->create([
-        'name' => 'Tim Race MySQL',
-        'slug' => 'tim-race-mysql',
-        'invite_code' => 'RACETEST',
+        'name' => 'Tim Lock Join',
+        'slug' => 'tim-lock-join',
+        'invite_code' => 'LCKJOIN1',
         'leader_id' => $leader->id,
         'status' => 'active',
     ]);
@@ -123,80 +118,41 @@ test('skenario balapan join tim di mysql: lockForUpdate mencegah pelanggaran max
     ]);
 
     $userA = User::on('mysql_test')->create([
-        'name' => 'User A',
-        'email' => 'user_a@ubbg.ac.id',
+        'name' => 'User Join Lock',
+        'email' => 'user_join_lock@ubbg.ac.id',
         'password' => bcrypt('password123'),
         'email_verified_at' => now(),
     ]);
 
-    $userB = User::on('mysql_test')->create([
-        'name' => 'User B',
-        'email' => 'user_b@ubbg.ac.id',
-        'password' => bcrypt('password123'),
-        'email_verified_at' => now(),
-    ]);
+    // Koneksi 1 memegang exclusive lock pada baris tim
+    $conn1 = DB::connection('mysql_test');
+    $conn1->beginTransaction();
+    $conn1->table('teams')->where('id', $team->id)->lockForUpdate()->first();
 
-    // Transaksi 1 bergabung ke slot terakhir
-    DB::connection('mysql_test')->transaction(function () use ($userA, $team) {
-        $t = Team::on('mysql_test')->where('id', $team->id)->lockForUpdate()->first();
-        expect($t->members()->count())->toBe(1);
+    // Jalankan sub-proses yang memanggil TeamController::join produksi via artisan dengan lock_wait_timeout 1 detik
+    $result = Process::path(base_path())->run("php artisan app:test-lock-join {$team->invite_code} {$userA->id}");
+    $conn1->rollBack();
 
-        TeamMember::on('mysql_test')->create([
-            'team_id' => $t->id,
-            'user_id' => $userA->id,
-            'role' => 'member',
-            'joined_at' => now(),
-        ]);
-    });
-
-    // Transaksi 2 mencoba bergabung saat tim sudah penuh
-    $joined = false;
-    $errorMessage = '';
-
-    try {
-        DB::connection('mysql_test')->transaction(function () use ($userB, $team) {
-            $t = Team::on('mysql_test')->where('id', $team->id)->lockForUpdate()->first();
-            if ($t->members()->count() >= 2) {
-                throw new Exception('Tim ini sudah penuh (maksimal 2 anggota).');
-            }
-
-            TeamMember::on('mysql_test')->create([
-                'team_id' => $t->id,
-                'user_id' => $userB->id,
-                'role' => 'member',
-                'joined_at' => now(),
-            ]);
-        });
-        $joined = true;
-    } catch (Exception $e) {
-        $errorMessage = $e->getMessage();
-    }
-
-    expect($joined)->toBeFalse()
-        ->and($errorMessage)->toContain('Tim ini sudah penuh')
-        ->and(TeamMember::on('mysql_test')->where('team_id', $team->id)->count())->toBe(2);
+    // Jika lockForUpdate ada di TeamController::join, query SELECT baris tim langsung terblokir timeout di SQL pertama.
+    // Jika lockForUpdate dihapus dari TeamController::join, query SELECT tidak terblokir (Test GAGAL).
+    expect($result->output())->toContain('select * from `teams` where `invite_code` = ? limit 1 for update');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Pengujian Kuota Laporan & Concurrency Sisi MySQL (Fase 2)
-|--------------------------------------------------------------------------
-*/
-test('mysql concurrency: pengiriman laporan bersamaan dengan lockForUpdate mencegah tim melebihi kuota aktif', function () {
+test('ReportController::store memanggil lockForUpdate pada level produksi (mutation check)', function () {
     $settings = app(CompetitionSettings::class);
-    $settings->set('max_active_reports_per_team', 2);
 
     $leader = User::on('mysql_test')->create([
-        'name' => 'Reporter Leader',
-        'email' => 'leader_report@ubbg.ac.id',
+        'name' => 'Reporter Lock Store',
+        'email' => 'reporter_lock_store@ubbg.ac.id',
         'password' => bcrypt('password123'),
         'email_verified_at' => now(),
+        'rules_accepted_version' => (string) $settings->get('rules_version', '1'),
     ]);
 
     $team = Team::on('mysql_test')->create([
-        'name' => 'Tim Concurrency Report',
-        'slug' => 'tim-concurrency-report',
-        'invite_code' => 'REPCRACE',
+        'name' => 'Tim Lock Store',
+        'slug' => 'tim-lock-store',
+        'invite_code' => 'LCKSTORE',
         'leader_id' => $leader->id,
         'status' => 'active',
     ]);
@@ -209,15 +165,135 @@ test('mysql concurrency: pengiriman laporan bersamaan dengan lockForUpdate mence
     ]);
 
     $scope = Scope::on('mysql_test')->create([
-        'name' => 'Target MySQL',
-        'target' => 'https://target.ubbg.ac.id',
+        'name' => 'Target Store Lock',
+        'target' => 'https://lock-store.ubbg.ac.id',
         'scope_status' => 'in_scope',
         'is_active' => true,
     ]);
 
     $cwe = VulnerabilityType::on('mysql_test')->create([
         'cwe_id' => 'CWE-89',
-        'name' => 'SQL Injection',
+        'name' => 'SQLi Lock',
+        'is_active' => true,
+    ]);
+
+    // Koneksi 1 memegang exclusive lock pada baris tim
+    $conn1 = DB::connection('mysql_test');
+    $conn1->beginTransaction();
+    $conn1->table('teams')->where('id', $team->id)->lockForUpdate()->first();
+
+    // Jalankan sub-proses yang memanggil ReportController::store produksi via artisan dengan lock_wait_timeout 1 detik
+    $result = Process::path(base_path())->run("php artisan app:test-lock-report {$leader->id} {$scope->id} {$cwe->id} \"Uji Lock Store\"");
+    $conn1->rollBack();
+
+    // Jika lockForUpdate ada di ReportController::store, query SELECT baris tim langsung terblokir timeout di SQL pertama.
+    // Jika lockForUpdate dihapus dari ReportController::store, query SELECT tidak terblokir (Test GAGAL).
+    expect($result->output())->toContain('select * from `teams` where `id` = ? limit 1 for update');
+});
+
+test('skenario balapan join tim di mysql via Process pool: memanggil TeamController produksi secara paralel', function () {
+    $settings = app(CompetitionSettings::class);
+    $settings->set('max_team_size', 2);
+
+    $leader = User::on('mysql_test')->create([
+        'name' => 'Leader Race Pool',
+        'email' => 'leader_pool@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+    ]);
+
+    $team = Team::on('mysql_test')->create([
+        'name' => 'Tim Race Pool',
+        'slug' => 'tim-race-pool',
+        'invite_code' => 'POOLJOIN',
+        'leader_id' => $leader->id,
+        'status' => 'active',
+    ]);
+
+    TeamMember::on('mysql_test')->create([
+        'team_id' => $team->id,
+        'user_id' => $leader->id,
+        'role' => 'leader',
+        'joined_at' => now(),
+    ]);
+
+    $userA = User::on('mysql_test')->create([
+        'name' => 'User A Pool',
+        'email' => 'user_a_pool@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+    ]);
+
+    $userB = User::on('mysql_test')->create([
+        'name' => 'User B Pool',
+        'email' => 'user_b_pool@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+    ]);
+
+    // Jalankan dua proses paralel memanggil TeamController::join produksi melalui artisan command
+    $results = Process::pool(function ($pool) use ($team, $userA, $userB) {
+        $pool->as('p1')->path(base_path())->command("php artisan app:concurrent-join {$team->invite_code} {$userA->id}");
+        $pool->as('p2')->path(base_path())->command("php artisan app:concurrent-join {$team->invite_code} {$userB->id}");
+    })->wait();
+
+    $successCount = 0;
+    $failedCount = 0;
+    foreach (['p1', 'p2'] as $key) {
+        $result = $results[$key];
+        if ($result->successful() && str_contains($result->output(), 'SUCCESS')) {
+            $successCount++;
+        } else {
+            $failedCount++;
+        }
+    }
+
+    // Tepat 1 proses berhasil mendapatkan slot terakhir, 1 proses gagal
+    expect($successCount)->toBe(1, "P1 out: [{$results['p1']->output()}] P1 err: [{$results['p1']->errorOutput()}] | P2 out: [{$results['p2']->output()}] P2 err: [{$results['p2']->errorOutput()}]")
+        ->and($failedCount)->toBe(1);
+
+    // Total anggota di database MySQL tetap tepat 2 (tidak pernah tembus menjadi 3)
+    $finalCount = TeamMember::on('mysql_test')->where('team_id', $team->id)->count();
+    expect($finalCount)->toBe(2);
+});
+
+test('skenario balapan kirim laporan di mysql via Process pool: memanggil ReportController produksi secara paralel', function () {
+    $settings = app(CompetitionSettings::class);
+    $settings->set('max_active_reports_per_team', 2);
+
+    $leader = User::on('mysql_test')->create([
+        'name' => 'Leader Report Pool',
+        'email' => 'leader_rep_pool@ubbg.ac.id',
+        'password' => bcrypt('password123'),
+        'email_verified_at' => now(),
+        'rules_accepted_version' => (string) $settings->get('rules_version', '1'),
+    ]);
+
+    $team = Team::on('mysql_test')->create([
+        'name' => 'Tim Report Pool',
+        'slug' => 'tim-report-pool',
+        'invite_code' => 'POOLREP',
+        'leader_id' => $leader->id,
+        'status' => 'active',
+    ]);
+
+    TeamMember::on('mysql_test')->create([
+        'team_id' => $team->id,
+        'user_id' => $leader->id,
+        'role' => 'leader',
+        'joined_at' => now(),
+    ]);
+
+    $scope = Scope::on('mysql_test')->create([
+        'name' => 'Target Pool',
+        'target' => 'https://target-pool.ubbg.ac.id',
+        'scope_status' => 'in_scope',
+        'is_active' => true,
+    ]);
+
+    $cwe = VulnerabilityType::on('mysql_test')->create([
+        'cwe_id' => 'CWE-89',
+        'name' => 'SQLi Pool',
         'is_active' => true,
     ]);
 
@@ -227,133 +303,41 @@ test('mysql concurrency: pengiriman laporan bersamaan dengan lockForUpdate mence
         'reported_by' => $leader->id,
         'scope_id' => $scope->id,
         'vulnerability_type_id' => $cwe->id,
-        'title' => 'Laporan Awal',
-        'endpoint' => '/login',
+        'title' => 'Laporan Awal Pool',
+        'endpoint' => '/act1',
         'cvss_vector_claimed' => 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
         'cvss_score_claimed' => 9.8,
         'severity_claimed' => 'critical',
-        'description' => 'Deskripsi laporan awal',
-        'steps_to_reproduce' => str_repeat('Langkah reproduksi. ', 10),
-        'impact' => 'Dampak',
+        'description' => 'Deskripsi 1',
+        'steps_to_reproduce' => str_repeat('Langkah 1. ', 15),
+        'impact' => 'Dampak 1',
         'status' => 'submitted',
     ]);
 
-    // Skenario: Dua transaksi pengajuan laporan berjalan untuk slot terakhir (kuota tersisa 1)
-    // Transaksi 1 berhasil
-    $tx1Success = false;
-    DB::connection('mysql_test')->transaction(function () use ($team, $leader, $scope, $cwe, &$tx1Success) {
-        $lockedTeam = Team::on('mysql_test')->where('id', $team->id)->lockForUpdate()->first();
-        $activeReportsCount = Report::on('mysql_test')->where('team_id', $lockedTeam->id)
-            ->whereIn('status', ['submitted', 'triaged', 'in_review'])
-            ->count();
+    // Jalankan dua proses paralel memanggil ReportController::store via artisan command
+    $results = Process::pool(function ($pool) use ($leader, $scope, $cwe) {
+        $pool->as('p1')->path(base_path())->command("php artisan app:concurrent-report {$leader->id} {$scope->id} {$cwe->id} \"Laporan Concurrency 2\"");
+        $pool->as('p2')->path(base_path())->command("php artisan app:concurrent-report {$leader->id} {$scope->id} {$cwe->id} \"Laporan Concurrency 3\"");
+    })->wait();
 
-        if ($activeReportsCount < 2) {
-            Report::on('mysql_test')->create([
-                'team_id' => $lockedTeam->id,
-                'reported_by' => $leader->id,
-                'scope_id' => $scope->id,
-                'vulnerability_type_id' => $cwe->id,
-                'title' => 'Laporan Kedua (Slot Terakhir)',
-                'endpoint' => '/slot-last',
-                'cvss_vector_claimed' => 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
-                'cvss_score_claimed' => 9.8,
-                'severity_claimed' => 'critical',
-                'description' => 'Deskripsi slot terakhir',
-                'steps_to_reproduce' => str_repeat('Langkah slot terakhir. ', 10),
-                'impact' => 'Dampak',
-                'status' => 'submitted',
-            ]);
-            $tx1Success = true;
-        }
-    });
-
-    // Transaksi 2 (bersamaan): Setelah transaksi 1 commit dan lock dilepas, transaksi 2 mengecek kuota
-    $tx2Success = false;
-    $tx2Error = '';
-    try {
-        DB::connection('mysql_test')->transaction(function () use ($team, $leader, $scope, $cwe, &$tx2Success) {
-            $lockedTeam = Team::on('mysql_test')->where('id', $team->id)->lockForUpdate()->first();
-            $activeReportsCount = Report::on('mysql_test')->where('team_id', $lockedTeam->id)
-                ->whereIn('status', ['submitted', 'triaged', 'in_review'])
-                ->count();
-
-            if ($activeReportsCount >= 2) {
-                throw new Exception('Kuota laporan aktif tim Anda telah habis (maksimal 2).');
-            }
-
-            Report::on('mysql_test')->create([
-                'team_id' => $lockedTeam->id,
-                'reported_by' => $leader->id,
-                'scope_id' => $scope->id,
-                'vulnerability_type_id' => $cwe->id,
-                'title' => 'Laporan Ketiga (Harus Gagal)',
-                'endpoint' => '/fail',
-                'cvss_vector_claimed' => 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
-                'cvss_score_claimed' => 9.8,
-                'severity_claimed' => 'critical',
-                'description' => 'Deskripsi gagal',
-                'steps_to_reproduce' => str_repeat('Langkah gagal. ', 10),
-                'impact' => 'Dampak',
-                'status' => 'submitted',
-            ]);
-            $tx2Success = true;
-        });
-    } catch (Exception $e) {
-        $tx2Error = $e->getMessage();
-    }
-
-    expect($tx1Success)->toBeTrue('Transaksi 1 harus sukses mengisi slot kuota terakhir')
-        ->and($tx2Success)->toBeFalse('Transaksi 2 harus ditolak karena kuota telah penuh')
-        ->and($tx2Error)->toContain('Kuota laporan aktif tim Anda telah habis')
-        ->and(Report::on('mysql_test')->where('team_id', $team->id)->count())->toBe(2);
-});
-
-test('mysql concurrency: koneksi paralel terblokir timeout saat lockForUpdate tim sedang dipegang transaksi kirim laporan', function () {
-    $leader = User::on('mysql_test')->create([
-        'name' => 'Lock Reporter',
-        'email' => 'lock_reporter@ubbg.ac.id',
-        'password' => bcrypt('password123'),
-        'email_verified_at' => now(),
-    ]);
-
-    $team = Team::on('mysql_test')->create([
-        'name' => 'Tim Lock Report',
-        'slug' => 'tim-lock-report',
-        'invite_code' => 'LOCKREP',
-        'leader_id' => $leader->id,
-        'status' => 'active',
-    ]);
-
-    // 1. Koneksi 1: Membuka transaksi dan mengunci row tim untuk laporan
-    $conn1 = DB::connection('mysql_test');
-    $conn1->beginTransaction();
-    $lockedTeam = $conn1->table('teams')->where('id', $team->id)->lockForUpdate()->first();
-    expect($lockedTeam)->not->toBeNull();
-
-    // 2. Koneksi 2: Mencoba lockForUpdate pada tim yang sama dengan timeout 1 detik
-    $pdo2 = new PDO(
-        'mysql:host=127.0.0.1;port=3306;dbname=lombasaiber_test;charset=utf8mb4',
-        'root',
-        '',
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-    $pdo2->exec('SET SESSION innodb_lock_wait_timeout = 1');
-    $pdo2->beginTransaction();
-
-    $timedOut = false;
-    try {
-        $stmt = $pdo2->prepare('SELECT * FROM teams WHERE id = ? FOR UPDATE');
-        $stmt->execute([$team->id]);
-    } catch (PDOException $e) {
-        if (str_contains($e->getMessage(), '1205') || str_contains($e->getMessage(), 'Lock wait timeout')) {
-            $timedOut = true;
+    $successCount = 0;
+    $failedCount = 0;
+    foreach (['p1', 'p2'] as $key) {
+        $result = $results[$key];
+        if ($result->successful() && str_contains($result->output(), 'SUCCESS')) {
+            $successCount++;
+        } else {
+            $failedCount++;
         }
     }
 
-    $pdo2->rollBack();
-    $conn1->rollBack();
+    // Tepat 1 proses berhasil mendapatkan kuota terakhir, 1 proses gagal ditolak
+    expect($successCount)->toBe(1, "P1: {$results['p1']->output()} | P2: {$results['p2']->output()}")
+        ->and($failedCount)->toBe(1);
 
-    expect($timedOut)->toBeTrue('Koneksi paralel harus mengalami lock wait timeout di MySQL InnoDB');
+    // Total laporan aktif di MySQL tetap tepat 2 (tidak pernah tembus menjadi 3)
+    $activeReports = Report::on('mysql_test')->where('team_id', $team->id)->whereIn('status', ['submitted', 'in_review'])->count();
+    expect($activeReports)->toBe(2);
 });
 
 test('mysql invarian opsi B: balasan needs_info tim tetap sukses saat kuota aktif mysql penuh', function () {

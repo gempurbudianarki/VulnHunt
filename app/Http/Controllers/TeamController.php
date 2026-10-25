@@ -107,7 +107,8 @@ class TeamController extends Controller
                 ]);
             }
 
-            if ($team->members()->count() >= $maxTeamSize) {
+            $currentMembersCount = TeamMember::where('team_id', $team->id)->lockForUpdate()->count();
+            if ($currentMembersCount >= $maxTeamSize) {
                 throw ValidationException::withMessages([
                     'invite_code' => ["Tim ini sudah penuh (maksimal {$maxTeamSize} anggota)."],
                 ]);

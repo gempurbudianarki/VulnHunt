@@ -37,4 +37,9 @@ class ReportStatusHistory extends Model
     {
         return $this->belongsTo(User::class, 'changed_by');
     }
+
+    public function changedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'changed_by');
+    }
 }

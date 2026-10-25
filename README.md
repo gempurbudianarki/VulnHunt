@@ -1,66 +1,79 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Platform Lomba Bug Bounty UBBG (UBBG VulnHunt)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Platform resmi pelaksanaan kompetisi bug bounty kampus Universitas Bina Bangsa Getsempena (UBBG). Platform ini mengelola seluruh siklus kompetisi mulai dari pendaftaran tim mahasiswa, verifikasi NDA, pelaporan celah keamanan berbasis CVSS v3.1, sistem triage laporan oleh panitia, hingga papan peringkat (*leaderboard*).
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 1. Kebutuhan Server (Server Requirements)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Untuk menjalankan platform ini dengan stabil di lingkungan produksi maupun pengujian beban penuh, konfigurasi PHP (`php.ini`) minimal berikut wajib dipenuhi:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Parameter Konfigurasi | Nilai Minimal | Nilai Rekomendasi | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `post_max_size` | **256M** | **512M** | Menerima payload laporan temuan beserta hingga 8 berkas lampiran (PoC video/gambar/dokumen). |
+| `upload_max_filesize` | **25M** | **50M** | Batas maksimal per berkas lampiran sesuai spesifikasi lomba (25 MB per berkas). |
+| `memory_limit` | **512M** | **1024M** | Pemrosesan citra bukti eksploitasi beresolusi tinggi (hingga 4096x4096px) menggunakan Intervention Image / GD. |
+| `max_execution_time` | **120s** | **300s** | Waktu eksekusi yang cukup untuk upload berkas berukuran besar dan pemrosesan resize/strip EXIF. |
+| `max_input_time` | **120s** | **300s** | Waktu parsing data input formulir upload. |
 
-## Learning Laravel
+> [!WARNING]
+> **Catatan Konfigurasi Lingkungan Lokal (Laragon):**
+> Pada lingkungan pengembangan lokal bawaan Laragon, nilai konfigurasi umumnya jauh lebih longgar (`post_max_size = 2G`, `upload_max_filesize = 2G`, `memory_limit = 512M`). Pastikan server produksi dikonfigurasi secara eksplisit sesuai tabel di atas dan tidak mengandalkan default php-fpm minimal (seperti default 2M/8M) yang akan menyebabkan unggahan terpotong.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 2. Catatan Keamanan Kritis: Kunci Enkripsi (`APP_KEY`)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Seluruh muatan teknis eksploitasi dan rincian celah keamanan pada tabel `reports`:
+- `description` (Deskripsi celah)
+- `steps_to_reproduce` (Langkah-langkah reproduksi eksploitasi)
+- `impact` (Dampak kerentanan)
+- `remediation` (Rekomendasi perbaikan)
 
-## Laravel Sponsors
+disimpan di database dalam bentuk **ciphertext terenkripsi** menggunakan algoritma AES-256-CBC melalui Laravel Cryptographic Services dengan basis kunci `APP_KEY` pada file `.env`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+> [!CAUTION]
+> **PERINGATAN INTEGRITAS & KETERSEDIAAN DATA:**
+> Jika `APP_KEY` hilang, ter-reset (`php artisan key:generate`), atau berganti, **seluruh data laporan kerentanan yang telah dikirim oleh peserta TIDAK AKAN BISA DIDEKRIPSI LAGI SECARA PERMANEN**.
+> 
+> **Wajib bagi Panitia / Sysadmin:**
+> 1. Simpan salinan cadangan (*backup*) `APP_KEY` di tempat terpisah yang aman (misalnya: *secure vault*, password manager terenkripsi panitia, atau *cold storage* fisik).
+> 2. Jangan pernah melakukan `php artisan key:generate` setelah platform mulai menerima laporan peserta!
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## 3. Catatan Keamanan untuk Triager & Juri (Pemeriksa Laporan)
 
-## Contributing
+Berkas lampiran yang diunggah oleh peserta (gambar, rekaman video PoC, dokumen PDF, teks, atau markdown) berasal dari lingkungan peserta eksternal dan berpotensi memuat berkas berbahaya, eksploitasi *parser*, atau malware.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+> [!CAUTION]
+> **PROTOKOL PEMERIKSAAN BERKAS LAMPIRAN BAGI TRIAGER:**
+> 1. **Gunakan Lingkungan Terisolasi**: Selalu unduh dan buka berkas lampiran di dalam **Virtual Machine (VM) terisolasi** (*sandbox*) atau browser dengan profil terisolasi (misalnya disposable browser instance).
+> 2. **Jangan Eksekusi Langsung di Host Utama**: Jangan pernah mengekstrak, mengeksekusi, atau membuka dokumen lampiran peserta secara langsung di komputer kerja utama Anda tanpa isolasi.
+> 3. Meskipun server telah membersihkan metadata EXIF, melarang berkas SVG, dan memaksa unduhan sebagai attachment (`nosniff`), risiko *zero-day* pada penampil berkas pihak ketiga (PDF viewer/video player) tetap ada.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 4. Alur Autentikasi Staf & Keamanan Panel Filament
 
-## Security Vulnerabilities
+1. **Akses Panel Admin & Triager (`/admin`)**:
+   - Hanya akun dengan peran `admin` atau `triager` yang memiliki izin akses.
+   - Hak akses ditegakkan melalui implementasi `FilamentUser::canAccessPanel()`.
+2. **Wajib Two-Factor Authentication (2FA TOTP)**:
+   - Panel admin mewajibkan 2FA TOTP aktif untuk seluruh staf, termasuk di lingkungan `local`.
+   - Halaman login bawaan Filament (`/admin/login`) dinonaktifkan demi mencegah bypass tantangan 2FA. Seluruh staf diarahkan login melalui pipeline Fortify (`/login`).
+   - Akun staf yang baru dibuat wajib mengganti password awal dan mengaktifkan TOTP 2FA pada login pertama sebelum dapat membuka panel admin.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 5. Menjalankan Pengujian (Testing)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Pengujian unit dan fitur dijalankan menggunakan Pest PHP:
+
+```bash
+# Jalankan seluruh rangkaian pengujian fitur
+php artisan test
+
+# Jalankan pengujian konkurensi database nyata (MySQL InnoDB Locking)
+php artisan test --filter=MySqlConcurrencyTest
+```

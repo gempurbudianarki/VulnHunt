@@ -35,10 +35,10 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
 ## 4. Perlindungan Upload File, Pelarangan SVG, & Batasan Dimensi Gambar
 - **Keputusan**: 
   1. Bukti eksploitasi dan dokumen NDA hanya menerima MIME type aman: gambar (`png, jpg, jpeg, webp`), video (`mp4, webm`), dokumen teks (`pdf, txt, md`). Format SVG ditolak secara mutlak meskipun berstatus gambar.
-  2. Batas dimensi gambar diperluas hingga maksimal 6000x6000 piksel dengan pemeriksaan `getimagesize()` sebelum *decode* ke memori. Jika melebihi batas 6000 piksel, sistem mengembalikan pesan error yang jelas berisi dimensi berkas asli vs batas maksimal untuk mencegah serangan *decompression bomb / pixel flood DoS*.
-  3. Berkas gambar yang lolos verifikasi dimensi diproses otomatis dengan `scaleDown(2500, 2500)` via Intervention Image untuk mereduksi beban memori dan storage tanpa mengurangi keterbacaan tanda tangan fisik, serta membuang seluruh metadata EXIF dan GPS.
+  2. Batas dimensi gambar ditetapkan maksimal 4096x4096 piksel dengan pemeriksaan `getimagesize()` sebelum *decode* ke memori. Jika melebihi batas 4096 piksel, sistem mengembalikan pesan error yang jelas berisi dimensi berkas asli vs batas maksimal untuk mencegah serangan *decompression bomb / pixel flood DoS*.
+  3. Berkas gambar yang lolos verifikasi dimensi diproses otomatis dengan `scaleDown(2500, 2500)` via Intervention Image untuk mereduksi beban memori dan storage tanpa mengurangi keterbacaan bukti, serta membuang seluruh metadata EXIF dan GPS.
   4. Hash SHA-256 berkas dihitung dari berkas akhir hasil olahan (setelah resize dan EXIF dibuang) dan dicatat di `report_attachments.sha256` atau `nda_submissions.signed_file_sha256`.
-  5. Seluruh unduhan berkas lampiran (termasuk `.txt`, `.md`, dan `.pdf`) **selalu** dikirim dengan header HTTP `Content-Disposition: attachment; filename="..."` dan `X-Content-Type-Options: nosniff`. Berkas **tidak pernah** disajikan secara `inline` di browser.
+  5. Seluruh unduhan berkas lampiran (termasuk `.txt`, `.md`, dan `.pdf`) **selalu** dikirim dengan header HTTP `Content-Disposition: attachment; filename="..."` dan `X-Content-Type-Options: nosniff`. Nama file unduhan disanitasi menggunakan `basename` dan regex pembersih karakter berbahaya. Berkas **tidak pernah** disajikan secara `inline` di browser.
 - **Alasan**: File SVG dan file teks/PDF inline dapat memicu Stored XSS di browser panitia atau peserta. Dimensi raksasa dapat menguras memori server jika didecode langsung tanpa pengecekan dimensi awal.
 - **Alternatif**: Mengizinkan SVG dengan sanitasi XML, menyajikan PDF secara inline, atau decode gambar tanpa limit dimensi.
 
@@ -61,8 +61,8 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
   3. Jika tim sedang memiliki jumlah laporan aktif $\ge$ kuota (misal 5 laporan), dan memiliki 1 laporan berstatus `needs_info`, tim **tetap diizinkan** membalas atau merevisi laporan `needs_info` tersebut sehingga menjadi `in_review` (jumlah aktif menjadi 6 sementara).
   4. Pengiriman laporan baru (`/app/laporan/baru`) tetap **wajib ditolak** jika jumlah laporan aktif saat itu $\ge$ kuota.
   5. Peserta / tim **dilarang keras** mengubah status laporannya sendiri menjadi `needs_info` (transisi ke `needs_info` adalah hak eksklusif admin/triager).
-- **Alasan**: Menghargai hak tim untuk melengkapi informasi temuan yang diminta panitia tanpa tersandera oleh keterbatasan slot laporan baru.
-- **Alternatif**: Memblokir revisi saat kuota penuh (merugikan tim yang ingin merespons permintaan admin).
+  6. Peserta tidak memiliki hak untuk mengedit bebas laporan yang telah dikirim (`submitted`, `in_review`, `triaged`, dll). Revisi langkah reproduksi hanya diizinkan pada saat laporan berstatus `needs_info` melalui formulir balasan `reports.reply`.
+- **Alasan**: Menghargai hak tim untuk melengkapi informasi temuan yang diminta panitia tanpa tersandera oleh keterbatasan slot laporan baru, sekaligus menjaga imutabilitas laporan yang sedang diuji.
 
 ---
 
@@ -80,11 +80,10 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
 
 ---
 
-## 9. Penanganan Memori & Dimensi Gambar Unggahan (5900x5900 Benchmark)
+## 9. Penanganan Memori & Dimensi Gambar Unggahan (Maksimal 4096x4096px)
 - **Keputusan**: 
-  1. Batas maksimal dimensi piksel gambar ditetapkan pada 6000x6000px.
-  2. Berdasarkan benchmark riil pada PHP 8.4 GD, pemrosesan citra 5900x5900 truecolor mengonsumsi memori puncak sekitar 246–274 MB dan waktu proses ~2,9 detik. Laragon dengan `memory_limit: 512M` mampu memproses ini secara aman.
-  3. Namun, untuk mengantisipasi lonjakan beban konkuren atau lingkungan produksi dengan `memory_limit` lebih rendah, seluruh proses `ImageManager::read()` dan `scaleDown(2500, 2500)` dibungkus dalam blok `try ... catch (\Throwable $e)` yang menangkap *memory exhaustion* atau kerusakan berkas, lalu mengembalikan respons validasi 422 yang ramah pengguna alih-alih error 500 fatal.
+  1. Batas maksimal dimensi piksel gambar diturunkan ke 4096x4096px sesuai arahan keamanan.
+  2. Seluruh proses `ImageManager::read()` dan `scaleDown(2500, 2500)` dibungkus dalam blok `try ... catch (\Throwable $e)` yang menangkap *memory exhaustion* atau kerusakan berkas, lalu mengembalikan respons validasi 422 yang ramah pengguna alih-alih error 500 fatal.
 - **Alasan**: Mencegah crash PHP-FPM dan memberikan informasi diagnostik yang jelas kepada pengguna.
 
 ---
@@ -101,7 +100,24 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
      - Pemeriksaan `attachments.* => 'max:25600'` (maks 25 MB per berkas) dan `attachments => 'max:8'` (maksimal 8 berkas).
      - Deteksi MIME fisik berbasis `finfo` (melarang manipulasi ekstensi palsu).
      - Pelarangan mutlak berkas berformat SVG (`image/svg+xml`).
-     - Pemeriksaan dimensi `getimagesize()` (maks 6000x6000px) sebelum manipulasi citra untuk mencegah *decompression bomb*.
+     - Pemeriksaan dimensi `getimagesize()` (maks 4096x4096px) sebelum manipulasi citra untuk mencegah *decompression bomb*.
      - Pembersihan seluruh metadata EXIF dan GPS serta normalisasi ukuran dengan `scaleDown(2500, 2500)` via Intervention Image v3.
      - Seluruh berkas lampiran disimpan di disk `private` dan disajikan dengan header `Content-Disposition: attachment; filename="..."` serta `X-Content-Type-Options: nosniff`.
 - **Alasan**: Efisiensi alur pengguna (tidak memerlukan upload async yang rumit) dengan tetap menjamin keamanan mutlak dan isolasi IDOR antar-tim.
+
+---
+
+## 11. Rate Limiting Fase 2 (Spesifikasi Bagian 8.9) & Jendela Waktu Laporan
+- **Keputusan**:
+  1. **Batas Laju Fase 2**:
+     - Pengiriman Laporan: **10 per jam per tim** (`report_rate_limit_per_hour`).
+     - Pengunggahan Berkas: **20 per menit per pengguna** (`upload_rate_limit_per_minute`). Jika request formulir tidak menyertakan berkas, rate limiter upload mengembalikan `Limit::none()` sehingga tidak mengurangi kuota pengguna.
+     - Komentar / Balasan Laporan: **30 per menit per pengguna** (`comment_rate_limit_per_minute`).
+     - Seluruh nilai batas dibaca dinamis dari `CompetitionSettings` dengan fallback nilai default di atas.
+  2. **Jendela Waktu Pengiriman Laporan (`submission_open_at` & `submission_close_at`)**:
+     - Kunci pengaturan disinkronkan tepat sesuai spesifikasi: `submission_open_at` dan `submission_close_at`.
+     - **Perilaku saat bernilai `null`**:
+       - `submission_open_at = null`: Tidak ada batas awal (pengiriman terbuka sejak awal).
+       - `submission_close_at = null`: Tidak ada batas akhir (pengiriman dibuka tanpa batas waktu/deadline).
+       - Kedua kunci bernilai `null`: Jendela pengiriman laporan berstatus terbuka bebas (unrestricted).
+     - Jika waktu saat ini (`now()`) berada sebelum `submission_open_at` atau sesudah `submission_close_at`, pengiriman laporan baru ditolak oleh server dengan pesan validasi error.

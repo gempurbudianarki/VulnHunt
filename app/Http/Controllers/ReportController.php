@@ -12,6 +12,7 @@ use App\Models\Team;
 use App\Models\VulnerabilityType;
 use App\Services\CompetitionSettings;
 use App\Services\CvssCalculator;
+use App\Services\ReportStateMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -161,8 +162,11 @@ class ReportController extends Controller
                 ]);
             }
 
-            // Invarian Kuota: Cek kuota laporan aktif (submitted + in_review)
-            $activeCount = $team->reports()->whereIn('status', ['submitted', 'in_review'])->count();
+            // Invarian Kuota: Cek kuota laporan aktif (submitted + in_review) dengan locking read
+            $activeCount = Report::where('team_id', $team->id)
+                ->whereIn('status', ['submitted', 'in_review'])
+                ->lockForUpdate()
+                ->count();
             $effectiveQuota = $team->effectiveQuota();
 
             if ($activeCount >= $effectiveQuota) {
@@ -249,7 +253,12 @@ class ReportController extends Controller
                 'team.members.user',
                 'attachments',
                 'statusHistories.changedBy',
-                'comments.user',
+                'comments' => function ($q) use ($user) {
+                    if (! $user->hasAnyRole(['admin', 'triager'])) {
+                        $q->where('is_internal', false);
+                    }
+                    $q->with('user')->oldest();
+                },
                 'versions',
             ]);
 
@@ -288,10 +297,24 @@ class ReportController extends Controller
             abort(404, 'Berkas fisik lampiran tidak ditemukan.');
         }
 
-        $filename = basename($attachment->original_name);
+        $rawName = basename($attachment->original_name);
+        $cleanFilename = preg_replace('/[^\w\.\-\s]/u', '_', $rawName);
 
-        return Storage::disk('private')->download($attachment->disk_path, $filename, [
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        // Setiap unduhan lampiran oleh admin/triager wajib dicatat di log aktivitas
+        if ($user->hasAnyRole(['admin', 'triager'])) {
+            activity()
+                ->causedBy($user)
+                ->performedOn($attachment)
+                ->withProperties([
+                    'report_code' => $report->code,
+                    'attachment_id' => $attachment->id,
+                    'filename' => $cleanFilename,
+                ])
+                ->log('admin_download_attachment');
+        }
+
+        return Storage::disk('private')->download($attachment->disk_path, $cleanFilename, [
+            'Content-Disposition' => "attachment; filename=\"{$cleanFilename}\"",
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
@@ -368,16 +391,16 @@ class ReportController extends Controller
                 $this->processAttachments($request->file('attachments'), $report);
             }
 
-            // 4. Invarian Opsi B: Ubah status dari needs_info -> in_review (EXEMPT dari cek kuota aktif)
-            $report->update(['status' => 'in_review']);
-
-            ReportStatusHistory::create([
-                'report_id' => $report->id,
-                'from_status' => 'needs_info',
-                'to_status' => 'in_review',
-                'changed_by' => $user->id,
-                'reason' => 'Tim menanggapi permintaan informasi panitia.',
-            ]);
+            // 4. Invarian Opsi B: Ubah status dari needs_info -> in_review melalui ReportStateMachine (EXEMPT dari cek kuota aktif)
+            app(ReportStateMachine::class)->transition(
+                $report,
+                'in_review',
+                $user,
+                [
+                    'is_team_reply' => true,
+                    'reason' => 'Tim menanggapi permintaan informasi panitia.',
+                ]
+            );
         });
 
         return redirect()->route('reports.show', $report->code)
@@ -447,9 +470,9 @@ class ReportController extends Controller
                 }
 
                 [$width, $height] = $imageInfo;
-                if ($width > 6000 || $height > 6000) {
+                if ($width > 4096 || $height > 4096) {
                     throw ValidationException::withMessages([
-                        'attachments' => ["Dimensi gambar '{$originalName}' terlalu besar ({$width}x{$height} piksel, maksimal 6000x6000px)."],
+                        'attachments' => ["Dimensi gambar '{$originalName}' ({$width}x{$height} piksel) melebihi batas maksimal 4096x4096 piksel."],
                     ]);
                 }
 

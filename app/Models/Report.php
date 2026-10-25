@@ -181,4 +181,20 @@ class Report extends Model
 
         return $cleaned;
     }
+
+    /**
+     * Mengambil laporan lain yang mungkin terkait untuk bantuan deteksi duplikat manual (Bagian 8.6)
+     */
+    public function getRelatedReports(int $limit = 10)
+    {
+        return self::where('scope_id', $this->scope_id)
+            ->where(function ($q) {
+                $q->where('vulnerability_type_id', $this->vulnerability_type_id)
+                    ->orWhere('endpoint', $this->endpoint);
+            })
+            ->where('id', '!=', $this->id)
+            ->orderBy('submitted_at', 'asc')
+            ->limit($limit)
+            ->get();
+    }
 }
