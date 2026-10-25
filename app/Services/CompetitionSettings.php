@@ -45,6 +45,7 @@ class CompetitionSettings
         'triage_age_factor' => 0.5,
         'rules_version' => '1',
         'allowed_email_domains' => ['ubbg.ac.id'],
+        'registration_rate_limit_per_hour' => 60,
     ];
 
     /**
@@ -192,6 +193,12 @@ class CompetitionSettings
             case 'allowed_email_domains':
                 if (! is_array($value)) {
                     throw new InvalidArgumentException('Daftar domain email harus berupa array.');
+                }
+                break;
+
+            case 'registration_rate_limit_per_hour':
+                if (! is_int($value) || $value < 1) {
+                    throw new InvalidArgumentException('Batas laju registrasi per jam harus berupa bilangan bulat >= 1.');
                 }
                 break;
         }

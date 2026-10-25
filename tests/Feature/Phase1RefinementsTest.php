@@ -290,8 +290,12 @@ test('throttle endpoint gabung tim dibatasi 10 per menit per pengguna', function
     expect($throttled->status())->toBe(429);
 });
 
-test('throttle endpoint registrasi dibatasi 10 per jam per IP', function () {
-    for ($i = 1; $i <= 10; $i++) {
+test('throttle endpoint registrasi secara default dibatasi 60 per jam per IP', function () {
+    $settings = app(CompetitionSettings::class);
+    // Atur ke 5 untuk mempercepat pengujian unit
+    $settings->set('registration_rate_limit_per_hour', 5);
+
+    for ($i = 1; $i <= 5; $i++) {
         $response = $this->post('/register', [
             'name' => "Peserta {$i}",
             'nim' => "21000000{$i}",
@@ -305,11 +309,11 @@ test('throttle endpoint registrasi dibatasi 10 per jam per IP', function () {
         expect($response->status())->not->toBe(429);
     }
 
-    // Registrasi ke-11 dari IP yang sama harus di-throttle (HTTP 429)
+    // Registrasi ke-6 dari IP yang sama harus di-throttle (HTTP 429)
     $throttled = $this->post('/register', [
-        'name' => 'Peserta 11',
-        'nim' => '2100000011',
-        'email' => 'peserta11@ubbg.ac.id',
+        'name' => 'Peserta 6',
+        'nim' => '2100000006',
+        'email' => 'peserta6@ubbg.ac.id',
         'phone' => '081234567890',
         'study_program' => 'Informatika',
         'cohort_year' => 2022,
@@ -423,4 +427,144 @@ test('persetujuan aturan wajib diulang saat rules_version dinaikkan oleh panitia
 
     // Akses scope pulih kembali
     $this->actingAs($leader)->get(route('scope.index'))->assertOk();
+});
+
+/*
+|--------------------------------------------------------------------------
+| 10. Pengujian Tambahan Keamanan & Otorisasi
+|--------------------------------------------------------------------------
+*/
+test('staf dengan 2FA aktif tidak bisa mengakses panel hanya dengan password tanpa menyelesaikan tantangan TOTP', function () {
+    $secret = 'JBSWY3DPEHPK3PXP';
+    $staff = User::factory()->create([
+        'email' => 'staff_2fa@ubbg.ac.id',
+        'password' => bcrypt('PasswordBenar123!'),
+        'email_verified_at' => now(),
+        'must_change_password' => false,
+        'two_factor_secret' => encrypt($secret),
+        'two_factor_confirmed_at' => now(),
+    ]);
+    $staff->assignRole('admin');
+
+    // 1. Staf submit email & password di /login
+    $loginResponse = $this->post('/login', [
+        'email' => 'staff_2fa@ubbg.ac.id',
+        'password' => 'PasswordBenar123!',
+    ]);
+
+    // Fortify mengalihkan ke tantangan 2FA
+    $loginResponse->assertRedirect('/two-factor-challenge');
+    expect(auth()->check())->toBeFalse();
+
+    // 2. Jika mencoba bypass langsung ke /admin tanpa isi TOTP -> dialihkan ke /login
+    $bypassAttempt = $this->get('/admin');
+    $bypassAttempt->assertRedirect(route('login'));
+
+    // 3. Masukkan kode TOTP yang salah -> tetap tidak bisa masuk
+    $failTotp = $this->post('/two-factor-challenge', ['code' => '000000']);
+    $failTotp->assertSessionHasErrors(['code']);
+    expect(auth()->check())->toBeFalse();
+
+    // 4. Masukkan kode TOTP yang valid -> berhasil login dan diarahkan ke intended URL (/admin)
+    $validCode = (new Google2FA)->getCurrentOtp($secret);
+    $validTotp = $this->post('/two-factor-challenge', ['code' => $validCode]);
+    $validTotp->assertRedirect('/admin');
+
+    expect(auth()->check())->toBeTrue();
+    $this->get('/admin')->assertOk();
+});
+
+test('peserta biasa yang memanggil POST /app/tim/{team}/admin-pindah-ketua mendapat 403', function () {
+    $participant = User::factory()->create(['email_verified_at' => now()]);
+    $participant->assignRole('participant');
+
+    $targetLeader = User::factory()->create(['email_verified_at' => now()]);
+    $team = Team::create(['name' => 'Tim Korban', 'leader_id' => $targetLeader->id, 'invite_code' => 'KORBAN01']);
+    TeamMember::create(['team_id' => $team->id, 'user_id' => $targetLeader->id, 'role' => 'leader']);
+
+    $otherUser = User::factory()->create(['email_verified_at' => now()]);
+    TeamMember::create(['team_id' => $team->id, 'user_id' => $otherUser->id, 'role' => 'member']);
+
+    $response = $this->actingAs($participant)->post(route('teams.admin-reassign-leader', $team->id), [
+        'new_leader_id' => $otherUser->id,
+    ]);
+
+    $response->assertForbidden();
+    expect($team->fresh()->leader_id)->toBe($targetLeader->id);
+});
+
+test('transfer-ketua hanya boleh ke anggota tim yang sama dan menolak pihak luar', function () {
+    $leader = User::factory()->create(['email_verified_at' => now()]);
+    $team = Team::create(['name' => 'Tim Sendiri', 'leader_id' => $leader->id, 'invite_code' => 'SENDIRI1']);
+    TeamMember::create(['team_id' => $team->id, 'user_id' => $leader->id, 'role' => 'leader']);
+
+    $outsider = User::factory()->create(['email_verified_at' => now()]);
+
+    $response = $this->actingAs($leader)->post(route('teams.transfer-leadership'), [
+        'new_leader_id' => $outsider->id,
+    ]);
+
+    $response->assertSessionHas('error');
+    $errorMsg = session('error');
+    expect($errorMsg)->toContain('Pengguna tersebut bukan anggota dari tim ini')
+        ->and($team->fresh()->leader_id)->toBe($leader->id);
+});
+
+test('mass assignment pada registrasi tidak bisa menetapkan is_active, must_change_password, atau role admin', function () {
+    $response = $this->post('/register', [
+        'name' => 'Attacker Mass Assign',
+        'nim' => '210999888',
+        'email' => 'attacker_mass@ubbg.ac.id',
+        'phone' => '081234567890',
+        'study_program' => 'Informatika',
+        'cohort_year' => 2022,
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
+        'is_active' => false,
+        'must_change_password' => true,
+        'role' => 'admin',
+        'roles' => ['admin'],
+    ]);
+
+    $response->assertRedirect('/app');
+
+    $user = User::where('email', 'attacker_mass@ubbg.ac.id')->first();
+    expect($user)->not->toBeNull()
+        ->and($user->is_active)->toBeTrue()
+        ->and($user->must_change_password)->toBeFalse()
+        ->and($user->hasRole('admin'))->toBeFalse()
+        ->and($user->hasRole('participant'))->toBeTrue();
+});
+
+test('rate limiter registrasi dapat diubah dinamis lewat competition_settings', function () {
+    $settings = app(CompetitionSettings::class);
+    // Atur rate limit ke 2 per jam untuk keperluan pengujian
+    $settings->set('registration_rate_limit_per_hour', 2);
+
+    for ($i = 1; $i <= 2; $i++) {
+        $res = $this->post('/register', [
+            'name' => "Student {$i}",
+            'nim' => "21990000{$i}",
+            'email' => "student{$i}@ubbg.ac.id",
+            'phone' => '081234567890',
+            'study_program' => 'Informatika',
+            'cohort_year' => 2022,
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ]);
+        expect($res->status())->not->toBe(429);
+    }
+
+    // Permintaan ke-3 harus terkena throttle
+    $throttled = $this->post('/register', [
+        'name' => 'Student 3',
+        'nim' => '2199000003',
+        'email' => 'student3@ubbg.ac.id',
+        'phone' => '081234567890',
+        'study_program' => 'Informatika',
+        'cohort_year' => 2022,
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
+    ]);
+    expect($throttled->status())->toBe(429);
 });

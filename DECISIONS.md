@@ -63,3 +63,26 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
   5. Peserta / tim **dilarang keras** mengubah status laporannya sendiri menjadi `needs_info` (transisi ke `needs_info` adalah hak eksklusif admin/triager).
 - **Alasan**: Menghargai hak tim untuk melengkapi informasi temuan yang diminta panitia tanpa tersandera oleh keterbatasan slot laporan baru.
 - **Alternatif**: Memblokir revisi saat kuota penuh (merugikan tim yang ingin merespons permintaan admin).
+
+---
+
+## 7. Rate Limiter Registrasi Dinamis untuk NAT Kampus
+- **Keputusan**: Batas laju pendaftaran akun baru dinaikkan dari 10 menjadi 60 per jam per IP, dan dikonfigurasi secara dinamis melalui `competition_settings` dengan kunci `registration_rate_limit_per_hour`.
+- **Alasan**: Di lingkungan kampus, ratusan mahasiswa sering kali mengakses internet dari balik satu IP publik/NAT WiFi kampus yang sama. Batas 10 per jam terlalu ketat dan dapat memblokir pendaftar yang sah, sementara batas 60 per jam yang dapat disesuaikan panitia memberikan fleksibilitas tinggi tanpa mengorbankan perlindungan dari spam massal.
+- **Alternatif**: Nilai statis hardcode di middleware atau tanpa rate limit.
+
+---
+
+## 8. Deaktivasi Login Native Filament & Sentralisasi Autentikasi ke Fortify
+- **Keputusan**: Halaman login bawaan Filament (`/admin/login`) dinonaktifkan secara penuh (`->login()` dihapus). Seluruh akses staf dan admin diarahkan melalui alur Fortify (`/login`).
+- **Alasan**: Halaman login bawaan Filament secara default hanya memverifikasi email dan password tanpa mengeksekusi pipeline tantangan TOTP 2FA Fortify (`RedirectIfTwoFactorAuthenticatable`). Dengan menonaktifkan `/admin/login` dan mengalihkan pengunjung panel yang belum terautentikasi ke route Fortify, staf diwajibkan menyelesaikan tantangan TOTP 6 digit sebelum sesi login tercipta.
+- **Alternatif**: Mengizinkan login Filament terpisah (membuka celah bypass 2FA bagi staf yang memiliki 2FA aktif).
+
+---
+
+## 9. Penanganan Memori & Dimensi Gambar Unggahan (5900x5900 Benchmark)
+- **Keputusan**: 
+  1. Batas maksimal dimensi piksel gambar ditetapkan pada 6000x6000px.
+  2. Berdasarkan benchmark riil pada PHP 8.4 GD, pemrosesan citra 5900x5900 truecolor mengonsumsi memori puncak sekitar 246–274 MB dan waktu proses ~2,9 detik. Laragon dengan `memory_limit: 512M` mampu memproses ini secara aman.
+  3. Namun, untuk mengantisipasi lonjakan beban konkuren atau lingkungan produksi dengan `memory_limit` lebih rendah, seluruh proses `ImageManager::read()` dan `scaleDown(2500, 2500)` dibungkus dalam blok `try ... catch (\Throwable $e)` yang menangkap *memory exhaustion* atau kerusakan berkas, lalu mengembalikan respons validasi 422 yang ramah pengguna alih-alih error 500 fatal.
+- **Alasan**: Mencegah crash PHP-FPM dan memberikan informasi diagnostik yang jelas kepada pengguna.

@@ -109,10 +109,16 @@ class VerificationController extends Controller
             }
 
             // Strip EXIF metadata dan resize otomatis bila melebihi 2500x2500 piksel
-            $manager = new ImageManager(new Driver);
-            $image = $manager->read($tempPath);
-            $image->scaleDown(2500, 2500);
-            $image->save($fullDestinationPath);
+            try {
+                $manager = new ImageManager(new Driver);
+                $image = $manager->read($tempPath);
+                $image->scaleDown(2500, 2500);
+                $image->save($fullDestinationPath);
+            } catch (\Throwable $e) {
+                throw ValidationException::withMessages([
+                    'signed_file' => ['Gagal memproses berkas gambar: memori server tidak mencukupi atau berkas gambar rusak.'],
+                ]);
+            }
         } else {
             // Berkas PDF disimpan langsung ke storage privat
             copy($tempPath, $fullDestinationPath);

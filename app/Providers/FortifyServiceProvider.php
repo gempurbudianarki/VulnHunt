@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Services\CompetitionSettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -51,9 +52,11 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
-        // Registrasi: 10 per jam per IP
+        // Registrasi: dinamis via competition_settings (default 60 per jam per IP)
         RateLimiter::for('register', function (Request $request) {
-            return Limit::perHour(10)->by($request->ip());
+            $limitPerHour = (int) app(CompetitionSettings::class)->get('registration_rate_limit_per_hour', 60);
+
+            return Limit::perHour($limitPerHour)->by($request->ip());
         });
 
         // Gabung Tim: 10 per menit per pengguna
