@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-sage text-lumut font-sans antialiased selection:bg-ambar/30 selection:text-lumut;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-display text-lumut tracking-tight;
+    }
+}
+
+@layer components {
+    /* Claymorphism Interactive Button */
+    .btn-clay-primary {
+        @apply inline-flex items-center justify-center px-6 py-3 bg-daun hover:bg-daun-hover text-white font-medium rounded-clay shadow-clay-btn active:shadow-clay-btn-active active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-daun/40 focus:ring-offset-2;
+    }
+
+    .btn-clay-secondary {
+        @apply inline-flex items-center justify-center px-5 py-2.5 bg-putih-daun hover:bg-white text-lumut font-medium rounded-clay border border-abu-batu/20 shadow-sm hover:border-abu-batu/40 active:translate-y-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-lumut/20 focus:ring-offset-2;
+    }
+
+    /* Specimen Card Left Border Utility */
+    .specimen-card {
+        @apply bg-putih-daun border border-abu-batu/20 rounded-panel relative overflow-hidden transition-all duration-200 hover:border-abu-batu/40 hover:shadow-md;
+    }
+
+    .specimen-border-critical {
+        border-left: 5px solid theme('colors.severity.critical');
+    }
+    .specimen-border-high {
+        border-left: 5px solid theme('colors.severity.high');
+    }
+    .specimen-border-medium {
+        border-left: 5px solid theme('colors.severity.medium');
+    }
+    .specimen-border-low {
+        border-left: 5px solid theme('colors.severity.low');
+    }
+    .specimen-border-info {
+        border-left: 5px solid theme('colors.severity.info');
+    }
+}
