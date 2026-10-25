@@ -23,6 +23,11 @@ class EnsureParticipantApproved
             return redirect()->route('login');
         }
 
+        // Staf Panitia (Admin & Triager) dikecualikan dari alur kelulusan peserta
+        if ($user->hasRole('admin') || $user->hasRole('triager')) {
+            return $next($request);
+        }
+
         // 1. Verifikasi Email
         if (! $user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');

@@ -38,7 +38,6 @@ class Report extends Model
         'points_override_note',
         'duplicate_of',
         'revision_no',
-        'submitted_at',
         'triaged_by',
         'triaged_at',
         'closed_at',
@@ -65,6 +64,13 @@ class Report extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (Report $report) {
+            // submitted_at ditetapkan mutlak oleh server saat laporan dibuat
+            if (empty($report->submitted_at)) {
+                $report->submitted_at = now();
+            }
+        });
+
         static::created(function (Report $report) {
             if (empty($report->code)) {
                 $year = date('Y', strtotime($report->submitted_at ?? 'now'));

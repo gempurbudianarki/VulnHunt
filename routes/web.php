@@ -82,7 +82,10 @@ Route::middleware(['auth', 'verified'])->prefix('app')->group(function () {
         Route::prefix('laporan')->name('reports.')->group(function () {
             Route::get('/', [ReportController::class, 'index'])->name('index');
             Route::get('/baru', [ReportController::class, 'create'])->name('create');
+            Route::post('/', [ReportController::class, 'store'])->name('store');
             Route::get('/{code}', [ReportController::class, 'show'])->name('show');
+            Route::post('/{code}/balas', [ReportController::class, 'replyNeedsInfo'])->name('reply');
+            Route::get('/{code}/lampiran/{attachmentId}', [ReportController::class, 'downloadAttachment'])->name('attachment.download');
         });
     });
 });

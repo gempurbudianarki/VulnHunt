@@ -86,3 +86,22 @@ Dokumen ini mencatat semua keputusan teknis, arsitektural, dan keamanan yang dia
   2. Berdasarkan benchmark riil pada PHP 8.4 GD, pemrosesan citra 5900x5900 truecolor mengonsumsi memori puncak sekitar 246–274 MB dan waktu proses ~2,9 detik. Laragon dengan `memory_limit: 512M` mampu memproses ini secara aman.
   3. Namun, untuk mengantisipasi lonjakan beban konkuren atau lingkungan produksi dengan `memory_limit` lebih rendah, seluruh proses `ImageManager::read()` dan `scaleDown(2500, 2500)` dibungkus dalam blok `try ... catch (\Throwable $e)` yang menangkap *memory exhaustion* atau kerusakan berkas, lalu mengembalikan respons validasi 422 yang ramah pengguna alih-alih error 500 fatal.
 - **Alasan**: Mencegah crash PHP-FPM dan memberikan informasi diagnostik yang jelas kepada pengguna.
+
+---
+
+## 10. Kapasitas Unggah Lampiran (php.ini Laragon vs Aturan 8 Berkas x 25 MB)
+- **Keputusan**: 
+  1. Pemeriksaan konfigurasi lingkungan Laragon menunjukkan:
+     - `upload_max_filesize = 2G`
+     - `post_max_size = 2G`
+     - `memory_limit = 512M`
+  2. Aturan spesifikasi lomba membatasi pengunggahan lampiran hingga maksimal 8 berkas x 25 MB = 200 MB per laporan temuan.
+  3. Karena total batas muatan lomba (200 MB) jauh di bawah batas server Laragon (2 GB), pengunggahan seluruh berkas lampiran secara langsung dalam satu request formulir (`multipart/form-data`) berjalan aman, tanpa risiko terpotong atau gagal akibat `ValidatePostSize`.
+  4. Pengamanan di sisi aplikasi tetap ditegakkan:
+     - Pemeriksaan `attachments.* => 'max:25600'` (maks 25 MB per berkas) dan `attachments => 'max:8'` (maksimal 8 berkas).
+     - Deteksi MIME fisik berbasis `finfo` (melarang manipulasi ekstensi palsu).
+     - Pelarangan mutlak berkas berformat SVG (`image/svg+xml`).
+     - Pemeriksaan dimensi `getimagesize()` (maks 6000x6000px) sebelum manipulasi citra untuk mencegah *decompression bomb*.
+     - Pembersihan seluruh metadata EXIF dan GPS serta normalisasi ukuran dengan `scaleDown(2500, 2500)` via Intervention Image v3.
+     - Seluruh berkas lampiran disimpan di disk `private` dan disajikan dengan header `Content-Disposition: attachment; filename="..."` serta `X-Content-Type-Options: nosniff`.
+- **Alasan**: Efisiensi alur pengguna (tidak memerlukan upload async yang rumit) dengan tetap menjamin keamanan mutlak dan isolasi IDOR antar-tim.
